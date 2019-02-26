@@ -48,3 +48,12 @@ class NeuralNet():
         Loads parameters of the neural network from folder/filename
         """
         pass
+
+    def set_weights(self,weights):
+        pass
+
+    def set_weights(self,weights):
+        pass
+
+    def get_loss(self):
+        pass

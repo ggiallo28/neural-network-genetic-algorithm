@@ -7,7 +7,7 @@ import numpy as np
 
 
 class OthelloGame(Game):
-    def __init__(self, n):
+    def __init__(self, n=5):
         self.n = n
 
     def getInitBoard(self):
