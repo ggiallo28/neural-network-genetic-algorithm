@@ -1,1 +1,0 @@
-# neural-network-genetic-algorithm
