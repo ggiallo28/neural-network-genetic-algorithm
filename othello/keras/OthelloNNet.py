@@ -3,9 +3,12 @@ sys.path.append('..')
 from utils import *
 
 import argparse
+from keras import backend as K
+import tensorflow as tf
 from keras.models import *
 from keras.layers import *
 from keras.optimizers import *
+import time
 
 class OthelloNNet():
     def __init__(self, game, args):
@@ -22,7 +25,7 @@ class OthelloNNet():
         h_conv2 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(args.num_channels, 3, padding='same', use_bias=False)(h_conv1)))         # batch_size  x board_x x board_y x num_channels
         h_conv3 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(args.num_channels, 3, padding='valid', use_bias=False)(h_conv2)))        # batch_size  x (board_x-2) x (board_y-2) x num_channels
         h_conv4 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(args.num_channels, 3, padding='valid', use_bias=False)(h_conv3)))        # batch_size  x (board_x-4) x (board_y-4) x num_channels
-        h_conv4_flat = Flatten()(h_conv4)       
+        h_conv4_flat = Flatten()(h_conv4)
         s_fc1 = Dropout(args.dropout)(Activation('relu')(BatchNormalization(axis=1)(Dense(1024, use_bias=False)(h_conv4_flat))))  # batch_size x 1024
         s_fc2 = Dropout(args.dropout)(Activation('relu')(BatchNormalization(axis=1)(Dense(512, use_bias=False)(s_fc1))))          # batch_size x 1024
         self.pi = Dense(self.action_size, activation='softmax', name='pi')(s_fc2)   # batch_size x self.action_size
@@ -30,3 +33,11 @@ class OthelloNNet():
 
         self.model = Model(inputs=self.input_boards, outputs=[self.pi, self.v])
         self.model.compile(loss=['categorical_crossentropy','mean_squared_error'], optimizer=Adam(args.lr))
+        self.model._make_predict_function()
+
+        self.session = K.get_session()
+        self.graph = tf.get_default_graph()
+        end = time.time()
+        self.model.predict(np.array(np.zeros((1,self.board_x,self.board_y)))) #warmup
+        print(time.time() - end)
+        self.graph.finalize()

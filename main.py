@@ -1,19 +1,19 @@
 from Coach import Coach
-#from tictactoe.TicTacToeGame import TicTacToeGame as Game
-#from tictactoe.keras.NNet import NNetWrapper as nn
-from othello.OthelloGame import OthelloGame as Game
-from othello.keras.NNet import NNetWrapper as nn
+from tictactoe.TicTacToeGame import TicTacToeGame as Game
+from tictactoe.mxnet.NNet import NNetWrapper as nn
+#from othello.OthelloGame import OthelloGame as Game
+#from othello.keras.NNet import NNetWrapper as nn
 from utils import *
 import numpy
 import GA
 
 args = dotdict({
-    'numIters': 2,
-    'numEps': 100,
+    'numIters': 1,
+    'numEps': 40,
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
-    'numMCTSSims': 25,
+    'numMCTSSims': 15,
     'arenaCompare': 40,
     'cpuct': 1,
 
@@ -29,7 +29,7 @@ Genetic algorithm parameters:
     Population size
 """
 sol_per_pop = 10
-num_parents = 5
+num_parents = 4
 #Creating the initial population.
 new_population = []
 game = Game()

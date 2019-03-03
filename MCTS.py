@@ -1,6 +1,7 @@
 import math
 import numpy as np
 EPS = 1e-8
+import time
 
 class MCTS():
     """
@@ -18,6 +19,7 @@ class MCTS():
 
         self.Es = {}        # stores game.getGameEnded ended for board s
         self.Vs = {}        # stores game.getValidMoves for board s
+        self.cBoard = []
 
     def getActionProb(self, canonicalBoard, temp=1):
         """
@@ -75,7 +77,8 @@ class MCTS():
 
         if s not in self.Ps:
             # leaf node
-            self.Ps[s], v = self.nnet.predict(canonicalBoard)
+            # self.cBoard.append(list(canonicalBoard))
+            self.Ps[s],v = self.nnet.predict(canonicalBoard)
             valids = self.game.getValidMoves(canonicalBoard, 1)
             self.Ps[s] = self.Ps[s]*valids      # masking invalid moves
             sum_Ps_s = np.sum(self.Ps[s])
@@ -83,9 +86,9 @@ class MCTS():
                 self.Ps[s] /= sum_Ps_s    # renormalize
             else:
                 # if all valid moves were masked make all valid moves equally probable
-                
+
                 # NB! All valid moves may be masked if either your NNet architecture is insufficient or you've get overfitting or something else.
-                # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.   
+                # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.
                 print("All valid moves were masked, do workaround.")
                 self.Ps[s] = self.Ps[s] + valids
                 self.Ps[s] /= np.sum(self.Ps[s])
@@ -95,6 +98,7 @@ class MCTS():
             return -v
 
         valids = self.Vs[s]
+
         cur_best = -float('inf')
         best_act = -1
 

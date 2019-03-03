@@ -10,6 +10,7 @@ sys.path.append('..')
 from utils import *
 from NeuralNet import NeuralNet
 
+from mxnet import nd, gpu, gluon, init, autograd
 import argparse
 from .TicTacToeNNet import TicTacToeNNet as onnet
 
@@ -36,33 +37,47 @@ class NNetWrapper(NeuralNet):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
-        self.loss = 99999999999
+        self.loss = 0
 
     def train(self, examples):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
         input_boards, target_pis, target_vs = list(zip(*examples))
-        input_boards = np.asarray(input_boards)
+        input_boards = np.asarray(input_boards)[np.newaxis, :, :]
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
-        train_history = self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs)
-        self.loss = train_history.history['loss']
+
+        dataset_train = gluon.data.dataset.ArrayDataset(input_boards, target_pis, target_vs)
+        train_data = gluon.data.DataLoader(dataset_train,batch_size=args.epochs,shuffle=True,num_workers=4)
+
+        for epoch in range(args.epochs):
+            for input_board, target_pi, target_v in train_data:
+                print(epoch)
+                if args.cuda:
+                    input_board = input_board.as_in_context(ctx)
+                    target_pi = target_pi.as_in_context(ctx)
+                    target_v = target_v.as_in_context(ctx)
+                with autograd.record():
+                    pi, v = self.nnet.predict(input_board)
+                    self.pi_loss = self.nnet.pi_loss(pi,target_pis)
+                    self.v_loss = self.nnet.v_loss(out,target_vs)
+                    self.loss = self.pi_loss + self.v_loss
+                self.loss.backward()
+                self.nnet.trainer.step(args.epochs)
 
     def predict(self, board):
         """
         board: np array with board
         """
         # timing
-        start = time.time()
+        # start = time.time()
 
         # preparing input
-        board = board[np.newaxis, :, :]
+        board = board[np.newaxis, np.newaxis, :, :]
 
         # run
-        with self.nnet.session.as_default():
-            with self.nnet.graph.as_default():
-                pi, v = self.nnet.model.predict(board)
+        pi, v = self.nnet.predict(board)
 
         #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return pi[0], v[0]

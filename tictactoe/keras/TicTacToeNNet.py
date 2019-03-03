@@ -3,6 +3,8 @@ sys.path.append('..')
 from utils import *
 
 import argparse
+from keras import backend as K
+import tensorflow as tf
 from keras.models import *
 from keras.layers import *
 from keras.optimizers import *
@@ -39,4 +41,8 @@ class TicTacToeNNet():
         self.model = Model(inputs=self.input_boards, outputs=[self.pi, self.v])
         self.model.compile(loss=['categorical_crossentropy','mean_squared_error'], optimizer=Adam(args.lr))
 
+        self.session = K.get_session()
+        self.graph = tf.get_default_graph()
+        self.model.predict(np.array(np.zeros((1,3,3)))) #warmup
+        #self.graph.finalize()
 #

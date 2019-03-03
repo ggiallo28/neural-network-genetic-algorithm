@@ -1,6 +1,6 @@
 import numpy
-#from tictactoe.TicTacToeGame import TicTacToeGame as Game
-from othello.OthelloGame import OthelloGame as Game
+from tictactoe.TicTacToeGame import TicTacToeGame as Game
+#from othello.OthelloGame import OthelloGame as Game
 from Arena import Arena
 from MCTS import MCTS
 
