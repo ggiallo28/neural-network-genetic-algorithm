@@ -1,0 +1,97 @@
+#!/usr/bin/env python
+
+from Coach import Coach
+from games.tictactoe.TicTacToeGame import TicTacToeGame as Game
+from games.tictactoe.keras.NNet import NNetWrapper as nn
+from utils import *
+import numpy
+import GA
+
+args = dotdict({
+    'numIters': 1,
+    'numEps': 20,
+    'tempThreshold': 15,
+    'updateThreshold': 0.6,
+    'maxlenOfQueue': 200000,
+    'numMCTSSims': 25,
+    'arenaCompare': 20,
+    'cpuct': 1,
+
+    'checkpoint': './temp/',
+    'load_model': False,
+    'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
+    'numItersForTrainExamplesHistory': 20,
+})
+
+
+def train():
+    """
+    Genetic algorithm parameters:
+        Mating pool size
+        Population size
+    """
+    sol_per_pop = 6
+    num_parents = 3
+    #Creating the initial population.
+    new_population = []
+    game = Game()
+    for i in range(0,sol_per_pop):
+        nnet = nn(game)
+        new_population.append(nnet)
+
+    num_generations = 20
+    for generation in range(num_generations):
+        # Training each chromosome in the population.
+        for iidx, nnet in enumerate(new_population):
+            fab = Coach(nnet.game, nnet, args)
+            fab.learn(iidx)
+
+        # Measing the fitness of each chromosome in the population.
+        fitness = GA.cal_pop_fitness(new_population, args)
+
+        # Selecting the best parents in the population for mating.
+        nnet_parents = GA.select_mating_pool(new_population, fitness, num_parents)
+        parents = []
+        for nnet in nnet_parents:
+            parents.append([nnet.get_weights(), nnet.name])
+
+        # Generating next generation using crossover.
+        num_weights = len(parents[0])
+        offspring_crossover = GA.crossover(parents, offspring_size=(sol_per_pop-num_parents, num_weights))
+        # In offspring_crossover there is no NAME
+
+        # Adding some variations to the offsrping using mutation.
+        offspring_mutation = GA.mutation(offspring_crossover)
+        nnet_offspring_mutation = []
+        for m in offspring_mutation:
+            nnet = nn(game)
+            nnet.set_weights(m)
+            nnet_offspring_mutation.append(nnet)
+
+        # Creating the new population based on the parents and offspring.
+        new_population[0:num_parents] = nnet_parents
+        new_population[num_parents:] = nnet_offspring_mutation
+
+        # The best result in the current iteration.
+        lossness = []
+        for p in nnet_parents:
+            lossness.append(p.get_loss())
+        print("Generation : ", generation, " Best result : ", min(lossness)[0])
+        for m in nnet_parents:
+            print('Senior Padawan ', m.name)
+        for m in nnet_offspring_mutation:
+            print('Junior Padawan ', m.name)
+
+        args.arenaCompare = args.arenaCompare + generation
+
+    # Getting the best solution after iterating finishing all generations.
+    #At first, the fitness is calculated for each solution in the final generation.
+    fitness = GA.cal_pop_fitness(new_population, args)
+    # Then return the index of that solution corresponding to the best fitness.
+    best_match_idx = numpy.where(fitness == numpy.max(fitness))
+
+    print("Best solution : ", new_population[best_match_idx])
+    print("Best solution fitness : ", fitness[best_match_idx])
+
+if __name__ == '__main__':
+    train()
