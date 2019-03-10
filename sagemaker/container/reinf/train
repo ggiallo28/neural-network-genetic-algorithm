@@ -6,6 +6,27 @@ from games.tictactoe.keras.NNet import NNetWrapper as nn
 from utils import *
 import numpy
 import GA
+from random import shuffle
+import math
+import os
+
+train_examples_file_name = "checkpoint.examples"
+
+# These are the paths to where SageMaker mounts interesting things in your container.
+
+prefix = '/opt/ml/'
+channel_name='training'
+
+model_path = os.path.join(prefix, 'model')
+param_path = os.path.join(prefix, 'io/config/hyperparameters.json')
+
+input_path = output_path = os.path.join(prefix + 'io/data', channel_name)
+
+# Read in any hyperparameters that the user passed with the training job
+if os.path.isfile(param_path):
+    with open(param_path, 'r') as tc:
+        args = dotdict(json.load(tc))
+
 
 args = dotdict({
     'numIters': 1,
@@ -32,38 +53,73 @@ def train():
     """
     sol_per_pop = 6
     num_parents = 3
-    #Creating the initial population.
+    num_generations = 20
+
+    """
+    Creating the initial population.
+        Generate population from scratch if there is no checkpoint,
+        or load population from file.
+    """
+    #
+    input_model_files = [ [model_path, file] for file in os.listdir(model_path) ]
+    input_model_files.sort()
     new_population = []
     game = Game()
-    for i in range(0,sol_per_pop):
-        nnet = nn(game)
-        new_population.append(nnet)
+    if len(input_model_files) == 0:
+        for i in range(0,sol_per_pop):
+            new_population.append(nn(game))
+    else:
+        print("Checkpoint File found. Read it.")
+        for load_model_file in input_model_files:
+            print(os.path.join(load_model_file[0], load_model_file[1]))
+            nnet = nn(game)
+            nnet.load_checkpoint(load_model_file[0], load_model_file[1])
+            new_population.append(nnet)
 
-    num_generations = 20
+    """
+    Creating Coach class used to generate Training Example
+        Load Train Example History if exist
+    """
+    master = Coach(Game(), args)
+    examples_file_path = os.path.join(input_path, train_examples_file_name)
+    if os.path.isfile(examples_file_path) :
+        print(os.path.join(examples_file_path))
+        master.loadTrainExamples(examples_file_path)
+
+    """
+    Select first Alpha Padawan
+        Run fitness calculation to obtain best model
+    """
+    #if len(input_model_files) == 0:
+    #   fitness = GA.cal_pop_fitness(new_population, args)
+    #   alpha_index = numpy.where(fitness == numpy.max(fitness))[0][0]
+    #   GA.select_mating_pool(new_population, fitness, num_parents)
+    #else:
+    alpha_index = 0
+    """
+    Start Genetic Algorithm
+    """
     for generation in range(num_generations):
-        # Training each chromosome in the population.
-        for iidx, nnet in enumerate(new_population):
-            fab = Coach(nnet.game, nnet, args)
-            fab.learn(iidx)
+        # Generate Train Examples by using alpha chromosome
+        alpha_padawan = new_population[alpha_index] # Select Alpha Padawan, usually is the first in list.
+        train_examples = master.generate(alpha_padawan)
+
+        # Training each chromosome in the population osing Train Examples.
+        master.train(new_population, train_examples)
 
         # Measing the fitness of each chromosome in the population.
         fitness = GA.cal_pop_fitness(new_population, args)
 
         # Selecting the best parents in the population for mating.
-        nnet_parents = GA.select_mating_pool(new_population, fitness, num_parents)
-        parents = []
-        for nnet in nnet_parents:
-            parents.append([nnet.get_weights(), nnet.name])
+        nnet_parents, parents_weights = GA.select_mating_pool(new_population, fitness, num_parents)
 
         # Generating next generation using crossover.
-        num_weights = len(parents[0])
-        offspring_crossover = GA.crossover(parents, offspring_size=(sol_per_pop-num_parents, num_weights))
-        # In offspring_crossover there is no NAME
+        offspring_crossover = GA.crossover(parents_weights, offspring_size=sol_per_pop-num_parents)
 
         # Adding some variations to the offsrping using mutation.
-        offspring_mutation = GA.mutation(offspring_crossover)
+        offspring_crossover = GA.mutation(offspring_crossover)
         nnet_offspring_mutation = []
-        for m in offspring_mutation:
+        for m in offspring_crossover:
             nnet = nn(game)
             nnet.set_weights(m)
             nnet_offspring_mutation.append(nnet)
@@ -72,17 +128,25 @@ def train():
         new_population[0:num_parents] = nnet_parents
         new_population[num_parents:] = nnet_offspring_mutation
 
-        # The best result in the current iteration.
-        lossness = []
-        for p in nnet_parents:
-            lossness.append(p.get_loss())
+        # Save Current State
+        print("Save Checkpoint")
+        new_population[0].save_checkpoint(model_path, 'alpha.network')
+        for iidx, nnet in enumerate(new_population[1:]):
+            nnet.save_checkpoint(model_path, 'beta{}.network'.format(iidx))
+        print("Save Train Examples")
+        master.saveTrainExamples(output_path, train_examples_file_name)
+
+        # Print current results
+        lossness = [p.get_loss() for p in nnet_parents]
         print("Generation : ", generation, " Best result : ", min(lossness)[0])
-        for m in nnet_parents:
+        print('>Alpha Padawan ', nnet_parents[0].name)
+        for m in nnet_parents[1:]:
             print('Senior Padawan ', m.name)
         for m in nnet_offspring_mutation:
             print('Junior Padawan ', m.name)
+        args.arenaCompare = args.arenaCompare + int(math.sqrt(generation))
 
-        args.arenaCompare = args.arenaCompare + generation
+        alpha_index = 0
 
     # Getting the best solution after iterating finishing all generations.
     #At first, the fitness is calculated for each solution in the final generation.

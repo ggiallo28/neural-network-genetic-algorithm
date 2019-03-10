@@ -18,9 +18,8 @@ class Coach():
     This class executes the self-play + learning. It uses the functions defined
     in Game and NeuralNet. args are specified in main.py.
     """
-    def __init__(self, game, nnet, args):
+    def __init__(self, game, args):
         self.game = game
-        self.nnet = nnet
         self.args = args
         self.trainExamplesHistory = []    # history of examples from args.numItersForTrainExamplesHistory latest iterations
         self.skipFirstSelfPlay = False # can be overriden in loadTrainExamples()
@@ -65,7 +64,7 @@ class Coach():
             if r!=0:
                 return [(x[0],x[2],r*((-1)**(x[1]!=curPlayer))) for x in trainExamples]
 
-    def learn(self, iidx):
+    def generate(self, nnet):
         """
         Performs numIters iterations with numEps episodes of self-play in each
         iteration. After every iteration, it retrains neural network with
@@ -75,31 +74,26 @@ class Coach():
         """
 
         for i in range(1, self.args.numIters+1):
-            # bookkeeping
-            print('------ Padawan {}: {} Lesson {} ------'.format(iidx, self.nnet.name, i))
-            # examples of the iteration
             if not self.skipFirstSelfPlay or i>1:
                 self.iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
 
                 eps_time = AverageMeter()
-                bar = Bar('Self Play', max=self.args.numEps)
+                bar = Bar('Generate Train Examples', max=self.args.numEps)
                 end = time.time()
 
                 futurelist = []
                 executor = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
                 for eps in range(self.args.numEps):
-                    mcts = MCTS(self.game, self.nnet, self.args)
+                    mcts = MCTS(self.game, nnet, self.args)
                     futurelist.append(executor.submit(self.executeEpisode, mcts))
 
                 for eps in range(self.args.numEps):
                     self.iterationTrainExamples += futurelist[eps].result()
-
-                eps = self.args.numEps - 1
-                eps_time.update(time.time() - end)
-                end = time.time()
-                bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps+1, maxeps=self.args.numEps, et=eps_time.avg,total=bar.elapsed_td, eta=bar.eta_td)
-                bar.next()
-                bar.finish()
+                    eps_time.update(time.time() - end)
+                    end = time.time()
+                    bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps+1, maxeps=self.args.numEps, et=eps_time.avg,
+                                                                                                               total=bar.elapsed_td, eta=bar.eta_td)
+                    bar.next()
                 executor.shutdown()
 
                 # save the iteration examples to the history
@@ -108,33 +102,29 @@ class Coach():
             if len(self.trainExamplesHistory) > self.args.numItersForTrainExamplesHistory:
                 print("len(trainExamplesHistory) =", len(self.trainExamplesHistory), " => remove the oldest trainExamples")
                 self.trainExamplesHistory.pop(0)
-            # backup history to a file
-            # NB! the examples were collected using the model from the previous iteration, so (i-1)
-            # self.saveTrainExamples(i-1)
 
             # shuffle examlpes before training
             trainExamples = []
             for e in self.trainExamplesHistory:
                 trainExamples.extend(e)
+
+            return trainExamples
+
+    def train(self, new_population, trainExamples):
+        for iidx, nnet in enumerate(new_population):
+            print('\n------ Padawan {}: {} ------'.format(iidx, nnet.name))
             shuffle(trainExamples)
+            nnet.train(trainExamples)
 
-            self.nnet.train(trainExamples)
-
-    def getCheckpointFile(self, iteration):
-        return 'checkpoint_' + str(iteration) + '.pth.tar'
-
-    def saveTrainExamples(self, iteration):
-        folder = self.args.checkpoint
+    def saveTrainExamples(self, folder, filename):
         if not os.path.exists(folder):
             os.makedirs(folder)
-        filename = os.path.join(folder, self.getCheckpointFile(iteration)+".examples")
-        with open(filename, "wb+") as f:
+        path = os.path.join(folder, filename)
+        with open(path, "wb+") as f:
             Pickler(f).dump(self.trainExamplesHistory)
         f.closed
 
-    def loadTrainExamples(self):
-        modelFile = os.path.join(self.args.load_folder_file[0], self.args.load_folder_file[1])
-        examplesFile = modelFile+".examples"
+    def loadTrainExamples(self, examplesFile):
         if not os.path.isfile(examplesFile):
             print(examplesFile)
             r = input("File with trainExamples not found. Continue? [y|n]")
@@ -146,4 +136,4 @@ class Coach():
                 self.trainExamplesHistory = Unpickler(f).load()
             f.closed
             # examples based on the model were already collected (loaded)
-            self.skipFirstSelfPlay = True
+            self.skipFirstSelfPlay = False
