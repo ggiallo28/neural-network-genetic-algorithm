@@ -43,6 +43,5 @@ class TicTacToeNNet():
 
         self.session = K.get_session()
         self.graph = tf.get_default_graph()
-        self.model.predict(np.array(np.zeros((1,3,3)))) #warmup
-        #self.graph.finalize()
+        self.model.predict(np.array(np.zeros((1,self.board_x, self.board_y)))) #warmup
 #

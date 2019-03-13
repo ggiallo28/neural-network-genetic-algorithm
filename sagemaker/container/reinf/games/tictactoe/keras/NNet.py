@@ -25,9 +25,9 @@ Based on (copy-pasted from) the NNet by SourKream and Surag Nair.
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
-    'epochs': 1,
+    'epochs': 3,
     'batch_size': 64,
-    'cuda': False,
+    'cuda': True,
     'num_channels': 512,
 })
 
@@ -44,12 +44,20 @@ class NNetWrapper(NeuralNet):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
+        end = time.time()
         input_boards, target_pis, target_vs = list(zip(*examples))
         input_boards = np.asarray(input_boards)
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
-        train_history = self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs)
+        train_history = self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs, verbose=0)
         self.loss = train_history.history['loss']
+
+        v0 = len(examples)
+        v1 = round(time.time()-end,2)
+        v2 = round(train_history.history['loss'][0],5)
+        v3 = round(train_history.history['pi_loss'][0],5)
+        v4 = round(train_history.history['v_loss'][0],5)
+        print('Examples {} | Time Total: {}s | loss {} | pi_loss {} | v_loss {}'.format(v0,v1,v2,v3,v4))
 
     def predict(self, board):
         """

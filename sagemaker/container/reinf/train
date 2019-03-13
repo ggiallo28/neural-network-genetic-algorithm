@@ -3,6 +3,8 @@
 from Coach import Coach
 from games.tictactoe.TicTacToeGame import TicTacToeGame as Game
 from games.tictactoe.keras.NNet import NNetWrapper as nn
+#from games.othello.OthelloGame import OthelloGame as Game
+#from games.othello.keras.NNet import NNetWrapper as nn
 from utils import *
 import numpy
 import GA
@@ -15,12 +17,22 @@ train_examples_file_name = "checkpoint.examples"
 # These are the paths to where SageMaker mounts interesting things in your container.
 
 prefix = '/opt/ml/'
+if not os.path.exists(prefix):
+    os.mkdir(prefix)
 channel_name='training'
-
 model_path = os.path.join(prefix, 'model')
+if not os.path.exists(model_path):
+    os.mkdir(model_path)
+if not os.path.exists(prefix + 'io'):
+    os.mkdir(prefix + 'io')
+if not os.path.exists(prefix + 'io/config'):
+    os.mkdir(prefix + 'io/config')
 param_path = os.path.join(prefix, 'io/config/hyperparameters.json')
-
+if not os.path.exists(prefix + 'io/data'):
+    os.mkdir(prefix + 'io/data')
 input_path = output_path = os.path.join(prefix + 'io/data', channel_name)
+if not os.path.exists(input_path):
+    os.mkdir(input_path)
 
 # Read in any hyperparameters that the user passed with the training job
 if os.path.isfile(param_path):
@@ -41,7 +53,7 @@ args = dotdict({
     'checkpoint': './temp/',
     'load_model': False,
     'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
-    'numItersForTrainExamplesHistory': 20,
+    'numItersForTrainExamplesHistory': 3,
 })
 
 
@@ -70,6 +82,7 @@ def train():
             new_population.append(nn(game))
     else:
         print("Checkpoint File found. Read it.")
+        sol_per_pop = len(input_model_files)
         for load_model_file in input_model_files:
             print(os.path.join(load_model_file[0], load_model_file[1]))
             nnet = nn(game)
@@ -99,6 +112,7 @@ def train():
     """
     Start Genetic Algorithm
     """
+    ancestors = list(range(0,sol_per_pop))
     for generation in range(num_generations):
         # Generate Train Examples by using alpha chromosome
         alpha_padawan = new_population[alpha_index] # Select Alpha Padawan, usually is the first in list.
@@ -111,7 +125,7 @@ def train():
         fitness = GA.cal_pop_fitness(new_population, args)
 
         # Selecting the best parents in the population for mating.
-        nnet_parents, parents_weights = GA.select_mating_pool(new_population, fitness, num_parents)
+        nnet_parents, parents_weights, indices = GA.select_mating_pool(new_population, fitness, num_parents)
 
         # Generating next generation using crossover.
         offspring_crossover = GA.crossover(parents_weights, offspring_size=sol_per_pop-num_parents)
@@ -138,14 +152,17 @@ def train():
 
         # Print current results
         lossness = [p.get_loss() for p in nnet_parents]
-        print("Generation : ", generation, " Best result : ", min(lossness)[0])
+        ancestors = [indices.index(i) for i in set(ancestors).intersection(indices)]
+        print("Generation : {} | Best result : {} | Ancestors {}".format(generation, min(lossness)[0], ancestors) )
         print('>Alpha Padawan ', nnet_parents[0].name)
         for m in nnet_parents[1:]:
             print('Senior Padawan ', m.name)
         for m in nnet_offspring_mutation:
             print('Junior Padawan ', m.name)
-        args.arenaCompare = args.arenaCompare + int(math.sqrt(generation))
-
+        #args.arenaCompare = args.arenaCompare + int(math.sqrt(generation))
+        if (len(ancestors) == 0):
+            print("All ancestors are dead, generating..")
+            ancestors = list(range(0,num_parents))
         alpha_index = 0
 
     # Getting the best solution after iterating finishing all generations.

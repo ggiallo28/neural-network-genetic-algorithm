@@ -15,7 +15,7 @@ Date: Jan 5, 2018.
 Based on the OthelloGame by Surag Nair.
 """
 class TicTacToeGame(Game):
-    def __init__(self, n=3):
+    def __init__(self, n=7):
         self.n = n
 
     def getInitBoard(self):

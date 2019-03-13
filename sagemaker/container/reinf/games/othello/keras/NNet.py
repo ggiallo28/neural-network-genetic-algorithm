@@ -25,18 +25,30 @@ args = dotdict({
 class NNetWrapper(NeuralNet):
     def __init__(self, game):
         self.nnet = onnet(game, args)
+        self.game = game
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
+        self.name = str(hex(id(self)))
+        self.loss = 99999999999
 
     def train(self, examples):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
+        end = time.time()
         input_boards, target_pis, target_vs = list(zip(*examples))
         input_boards = np.asarray(input_boards)
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
-        self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs)
+        train_history = self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs, verbose=0)
+        self.loss = train_history.history['loss']
+
+        v0 = len(examples)
+        v1 = round(time.time()-end,2)
+        v2 = round(train_history.history['loss'][0],5)
+        v3 = round(train_history.history['pi_loss'][0],5)
+        v4 = round(train_history.history['v_loss'][0],5)
+        print('Examples {} | Time Total: {}s | loss {} | pi_loss {} | v_loss {}'.format(v0,v1,v2,v3,v4))
 
     def predict(self, board):
         """
@@ -57,10 +69,10 @@ class NNetWrapper(NeuralNet):
     def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         filepath = os.path.join(folder, filename)
         if not os.path.exists(folder):
-            print("Checkpoint Directory does not exist! Making directory {}".format(folder))
+            #print("Checkpoint Directory does not exist! Making directory {}".format(folder))
             os.mkdir(folder)
-        else:
-            print("Checkpoint Directory exists! ")
+        #else:
+        #    print("Checkpoint Directory exists! ")
         self.nnet.model.save_weights(filepath)
 
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
@@ -69,3 +81,12 @@ class NNetWrapper(NeuralNet):
         if not os.path.exists(filepath):
             raise("No model in path {}".format(filepath))
         self.nnet.model.load_weights(filepath)
+
+    def get_weights(self):
+        return self.nnet.model.get_weights()
+
+    def set_weights(self, weights):
+        self.nnet.model.set_weights(weights)
+
+    def get_loss(self):
+        return self.loss

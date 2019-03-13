@@ -3,7 +3,6 @@ from Arena import Arena
 from MCTS import MCTS
 
 from collections import deque
-from myutils import Bar, AverageMeter
 import time, os, sys
 from pickle import Pickler, Unpickler
 from random import shuffle, randint
@@ -27,9 +26,9 @@ def cal_pop_fitness(pop, args):
 
             arena = Arena(lambda x: numpy.argmax(pmcts.getActionProb(x, temp=0)),
                           lambda x: numpy.argmax(nmcts.getActionProb(x, temp=0)), pnnet.game)
-            pwins, nwins, draws = arena.playGames(args.arenaCompare)
+            pwins, nwins, draws, total = arena.playGames(args.arenaCompare)
 
-            print('P{}/P{} WINS : {} / {} ; DRAWS : {}'.format(idx, jdx, pwins, nwins, draws))
+            print('P{}/P{} WINS : {} / {} ; DRAWS : {} | Time {}s'.format(idx, jdx, pwins, nwins, draws, total))
 
             fitness[idx] += ((pwins > nwins) + (pwins==nwins==0)*0.01 + (pwins==nwins!=0)*0.0001 + pwins*0.0000001)
             fitness[jdx] += ((nwins > pwins) + (pwins==nwins==0)*0.01 + (pwins==nwins!=0)*0.0001 + nwins*0.0000001)
@@ -40,16 +39,18 @@ def select_mating_pool(pop, fitness, num_parents):
     # Selecting the best individuals in the current generation as parents for producing the offspring of the next generation.
     # parents = numpy.empty((num_parents,))
     parents = [0]*num_parents
+    indices = []
     for parent_num in range(num_parents):
         max_fitness_idx = numpy.where(fitness == numpy.max(fitness))
         max_fitness_idx = max_fitness_idx[0][0]
         print('Padawan {} fitness: {}'.format(max_fitness_idx, round(fitness[max_fitness_idx][0],7) ))
         parents[parent_num] = pop[max_fitness_idx]
         fitness[max_fitness_idx] = -99999999999
+        indices.append(max_fitness_idx)
 
     nnet_parents = numpy.array(parents)
     parents_weights = [[nnet.get_weights(), nnet.name] for nnet in nnet_parents]
-    return nnet_parents, parents_weights
+    return nnet_parents, parents_weights, indices
 
 #def half_crossover(parents, offspring_size):
 #    offspring = [[]]*offspring_size[0]

@@ -2,7 +2,6 @@ from collections import deque
 from Arena import Arena
 from MCTS import MCTS
 import numpy as np
-from myutils import Bar, AverageMeter
 import time, os, sys
 from pickle import Pickler, Unpickler
 from random import shuffle
@@ -76,9 +75,6 @@ class Coach():
         for i in range(1, self.args.numIters+1):
             if not self.skipFirstSelfPlay or i>1:
                 self.iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
-
-                eps_time = AverageMeter()
-                bar = Bar('Generate Train Examples', max=self.args.numEps)
                 end = time.time()
 
                 futurelist = []
@@ -89,12 +85,9 @@ class Coach():
 
                 for eps in range(self.args.numEps):
                     self.iterationTrainExamples += futurelist[eps].result()
-                    eps_time.update(time.time() - end)
-                    end = time.time()
-                    bar.suffix  = '({eps}/{maxeps}) Eps Time: {et:.3f}s | Total: {total:} | ETA: {eta:}'.format(eps=eps+1, maxeps=self.args.numEps, et=eps_time.avg,
-                                                                                                               total=bar.elapsed_td, eta=bar.eta_td)
-                    bar.next()
-                executor.shutdown()
+
+                total = round(time.time()-end,2)
+                print('Generate Train Examples in {} Eps Time: {}s | Total: {}s'.format(self.args.numEps, round(total/self.args.numEps,3), total))
 
                 # save the iteration examples to the history
                 self.trainExamplesHistory.append(self.iterationTrainExamples)
@@ -103,7 +96,6 @@ class Coach():
                 print("len(trainExamplesHistory) =", len(self.trainExamplesHistory), " => remove the oldest trainExamples")
                 self.trainExamplesHistory.pop(0)
 
-            # shuffle examlpes before training
             trainExamples = []
             for e in self.trainExamplesHistory:
                 trainExamples.extend(e)
@@ -112,7 +104,7 @@ class Coach():
 
     def train(self, new_population, trainExamples):
         for iidx, nnet in enumerate(new_population):
-            print('\n------ Padawan {}: {} ------'.format(iidx, nnet.name))
+            print('------ Padawan {}: {} ------'.format(iidx, nnet.name))
             shuffle(trainExamples)
             nnet.train(trainExamples)
 
