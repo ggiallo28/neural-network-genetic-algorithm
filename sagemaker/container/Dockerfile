@@ -1,5 +1,6 @@
 FROM jihong/keras-gpu:latest
 
+RUN add-apt-repository ppa:jonathonf/python-3.6
 RUN apt-get update
 RUN apt-get install -y python3.6
 
