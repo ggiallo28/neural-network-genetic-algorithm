@@ -1,7 +1,7 @@
 FROM jihong/keras-gpu:latest
 
 RUN pip install futures flask gevent gunicorn
-pip install --ignore-installed --upgrade "https://github.com/lakshayg/tensorflow-build/releases/download/v1.6.0-ubuntu_16_04-py27-avx-avx2-fma-sse41-sse42/tensorflow-1.6.0-cp27-cp27mu-linux_x86_64.whl" --user
+RUN pip install --ignore-installed --upgrade "https://github.com/lakshayg/tensorflow-build/releases/download/v1.6.0-ubuntu_16_04-py27-avx-avx2-fma-sse41-sse42/tensorflow-1.6.0-cp27-cp27mu-linux_x86_64.whl" --user
 
 ENV PYTHONUNBUFFERED=TRUE
 ENV PYTHONDONTWRITEBYTECODE=TRUE
