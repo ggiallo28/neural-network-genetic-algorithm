@@ -23,14 +23,14 @@ channel_name='training'
 model_path = os.path.join(prefix, 'model')
 if not os.path.exists(model_path):
     os.mkdir(model_path)
-if not os.path.exists(prefix + 'io'):
-    os.mkdir(prefix + 'io')
-if not os.path.exists(prefix + 'io/config'):
-    os.mkdir(prefix + 'io/config')
-param_path = os.path.join(prefix, 'io/config/hyperparameters.json')
-if not os.path.exists(prefix + 'io/data'):
-    os.mkdir(prefix + 'io/data')
-input_path = output_path = os.path.join(prefix + 'io/data', channel_name)
+if not os.path.exists(model_path + 'io'):
+    os.mkdir(model_path + 'io')
+if not os.path.exists(model_path + 'io/config'):
+    os.mkdir(model_path + 'io/config')
+param_path = os.path.join(model_path, 'io/config/hyperparameters.json')
+if not os.path.exists(model_path + 'io/data'):
+    os.mkdir(model_path + 'io/data')
+input_path = output_path = os.path.join(model_path + 'io/data', channel_name)
 if not os.path.exists(input_path):
     os.mkdir(input_path)
 
