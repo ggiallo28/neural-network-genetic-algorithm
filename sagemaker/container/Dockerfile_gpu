@@ -64,6 +64,7 @@ RUN conda install -y python=${python_version} && \
     git clone git://github.com/keras-team/keras.git /src && pip install -e /src[tests] && \
     pip install git+git://github.com/keras-team/keras.git && \
     conda clean -yt
+RUN pip install futures flask gevent gunicorn
 
 ADD theanorc /home/keras/.theanorc
 
@@ -72,8 +73,12 @@ ENV LANG=C.UTF-8
 
 ENV PYTHONPATH='/src/:$PYTHONPATH'
 
-WORKDIR /data
 
-EXPOSE 8888
 
-CMD jupyter notebook --port=8888 --ip=0.0.0.0
+ENV PYTHONUNBUFFERED=TRUE
+ENV PYTHONDONTWRITEBYTECODE=TRUE
+ENV PATH="/opt/program:${PATH}"
+
+# Set up the program in the image
+COPY reinf /opt/program
+WORKDIR /opt/program
