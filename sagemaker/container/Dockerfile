@@ -1,22 +1,19 @@
-# Build an image that can do training and inference in SageMaker
-# This is a Python 2 image that uses the nginx, gunicorn, flask stack
-# for serving inferences in a stable way.
+FROM tensorflow/tensorflow:latest-gpu
 
-ARG cuda_version=9.0
-ARG cudnn_version=7
-FROM nvidia/cuda:${cuda_version}-cudnn${cudnn_version}-devel
+MAINTAINER Andreas Fritzler <andreas.fritzler@gmail.com>
 
-MAINTAINER Amazon AI <sage-learner@amazon.com>
+RUN pip --no-cache-dir install keras
 
-RUN apt-get update \
-  && apt-get install -y python3-pip python3-dev \
-  && cd /usr/local/bin \
-  && ln -s /usr/bin/python3 python \
-  && pip3 install --upgrade pip \
-  && apt-get install -y --no-install-recommends wget nginx ca-certificates \
+RUN DEBIAN_FRONTEND=noninteractive \
+  apt-get update && apt-get install -qq -y \
+  git \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip install tensorflow-gpu keras futures flask gevent gunicorn
+RUN git clone https://github.com/fchollet/keras.git /keras
+
+CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
+
+RUN pip install futures flask gevent gunicorn
 
 ENV PYTHONUNBUFFERED=TRUE
 ENV PYTHONDONTWRITEBYTECODE=TRUE
