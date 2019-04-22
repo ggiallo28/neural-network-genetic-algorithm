@@ -49,11 +49,11 @@ class Coach():
             canonicalBoard = self.game.getCanonicalForm(board,curPlayer)
             temp = int(episodeStep < self.args.tempThreshold)
 
+            start = time.time()
             pi = mcts.getActionProb(canonicalBoard, temp=temp)
+            end = time.time()
+            print("mtcs time:", end - start)
             sym = self.game.getSymmetries(canonicalBoard, pi)
-            print(sym)
-            pt()
-
 
             for b,p in sym:
                 trainExamples.append([b, curPlayer, p, None])

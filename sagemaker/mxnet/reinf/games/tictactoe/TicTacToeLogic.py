@@ -26,11 +26,11 @@ class Board():
 
         self.n = n
         # Create the empty board array.
-        self.pieces = nd.zeros((1,self.n,self.n))
+        self.pieces = nd.zeros((1,1,self.n,self.n))
 
     # add [][] indexer syntax to the Board
     def __getitem__(self, index):
-        return self.pieces[index]
+        return self.pieces[0][0][index]
 
     def get_legal_moves(self, color):
         """Returns all the legal moves for the given color.
@@ -42,7 +42,7 @@ class Board():
         # Get all the empty squares (color==0)
         for y in range(self.n):
             for x in range(self.n):
-                if self[0][x][y]==0:
+                if self[x][y]==0:
                     newmove = (x,y)
                     moves.add(newmove)
         return list(moves)
@@ -50,7 +50,7 @@ class Board():
     def has_legal_moves(self):
         for y in range(self.n):
             for x in range(self.n):
-                if self[0][x][y]==0:
+                if self[x][y]==0:
                     return True
         return False
 
@@ -63,7 +63,7 @@ class Board():
         for y in range(self.n):
             count = 0
             for x in range(self.n):
-                if self[0][x][y]==color:
+                if self[x][y]==color:
                     count += 1
             if count==win:
                 return True
@@ -71,20 +71,20 @@ class Board():
         for x in range(self.n):
             count = 0
             for y in range(self.n):
-                if self[0][x][y]==color:
+                if self[x][y]==color:
                     count += 1
             if count==win:
                 return True
         # check two diagonal strips
         count = 0
         for d in range(self.n):
-            if self[0][d][d]==color:
+            if self[d][d]==color:
                 count += 1
         if count==win:
             return True
         count = 0
         for d in range(self.n):
-            if self[0][d][self.n-d-1]==color:
+            if self[d][self.n-d-1]==color:
                 count += 1
         if count==win:
             return True
@@ -99,6 +99,6 @@ class Board():
         (x,y) = move
 
         # Add the piece to the empty square.
-        assert self[0][x][y] == 0
-        self[0][x][y] = color
+        assert self[x][y] == 0
+        self[x][y] = color
 

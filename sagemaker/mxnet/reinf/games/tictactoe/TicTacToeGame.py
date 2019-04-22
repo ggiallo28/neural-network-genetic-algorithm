@@ -86,17 +86,17 @@ class TicTacToeGame(Game):
         if k == 0:
             return x
         if k == 1:
-            y = self.flipud(nd.transpose(x))
+            y = self.flipud(nd.transpose(x,axes=(0,1,2)))
         if k == 2:
             y = self.flipud(self.fliplr(x))
         if k == 3:
-            y = nd.transpose(self.flipud(x))
+            y = nd.transpose(self.flipud(x),axes=(0,1,2))
         return y
 
     def getSymmetries(self, board, pi):
         # mirror, rotational
         assert(len(pi) == self.n**2+1)  # 1 for pass
-        pi_board = nd.reshape(pi[:-1], (self.n, self.n))
+        pi_board = nd.reshape(pi[:-1], (1, self.n, self.n))
         l = []
 
         for i in range(1, 5):

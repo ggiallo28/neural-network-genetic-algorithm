@@ -74,6 +74,8 @@ class NNetWrapper(NeuralNet):
             with self.nnet.graph.as_default():
                 pi, v = self.nnet.model.predict(board)
 
+        end = time.time()
+        print("predict time:", end - start)
         #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return pi[0], v[0]
 

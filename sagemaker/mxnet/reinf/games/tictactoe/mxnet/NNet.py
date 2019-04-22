@@ -30,6 +30,11 @@ args = dotdict({
     'num_channels': 512,
 })
 
+if args.cuda:
+    ctx = mx.gpu()
+else:
+    ctx = mx.cpu()
+
 class NNetWrapper(NeuralNet):
     def __init__(self, game):
         self.nnet = onnet(game, args)
@@ -44,24 +49,22 @@ class NNetWrapper(NeuralNet):
         """
         examples: list of examples, each example is of form (board, pi, v)
         """
-        input_boards, target_pis, target_vs = list(zip(*train_data[-1]))
+        input_boards, target_pis, target_vs = list(zip(*train_data))
         dataset_train = gluon.data.dataset.ArrayDataset(input_boards, target_pis, target_vs)
-        train_data[-1] = gluon.data.DataLoader(dataset_train,batch_size=args.epochs,shuffle=True,num_workers=4)
+        data_loader = gluon.data.DataLoader(dataset_train,batch_size=args.batch_size,shuffle=True,num_workers=4)
 
         for epoch in range(args.epochs):
-            for data_loader in train_data:
-                for input_board, target_pi, target_v in data_loader:
-                    input_board = nd.expand_dims(input_board, axis=1)
-                    input_board = input_board.as_in_context(ctx)
-                    target_pi = target_pi.as_in_context(ctx)
-                    target_v = target_v.as_in_context(ctx)
-                    with autograd.record():
-                        pi, v = self.nnet.predict(input_board)
-                        self.pi_loss = self.nnet.pi_loss(pi,target_pis)
-                        self.v_loss = self.nnet.v_loss(out,target_vs)
-                        self.loss = self.pi_loss + self.v_loss
-                    self.loss.backward()
-                    self.nnet.trainer.step(args.epochs)
+            for input_board, target_pi, target_v in data_loader:
+                input_board = input_board.as_in_context(ctx)
+                target_pi = target_pi.as_in_context(ctx)
+                target_v = target_v.as_in_context(ctx)
+                with autograd.record():
+                    pi, v = self.nnet.predict(input_board)
+                    self.pi_loss = self.nnet.pi_loss(pi,target_pis)
+                    self.v_loss = self.nnet.v_loss(out,target_vs)
+                    self.loss = self.pi_loss + self.v_loss
+                self.loss.backward()
+                self.nnet.trainer.step(args.epochs)
 
     def predict(self, board, isMCTS=False):
         if isMCTS:

@@ -1,4 +1,4 @@
-import sys
+import sys, time
 sys.path.append('..')
 from utils import *
 
@@ -43,7 +43,6 @@ class TicTacToeNNet():
 
         # Neural Net
         self.model = nn.Sequential()
-        self.model.add(Reshape())
         self.model.add(nn.Conv2D(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
         self.model.add(nn.BatchNorm(axis=3))
         self.model.add(nn.Activation('relu'))
@@ -75,12 +74,16 @@ class TicTacToeNNet():
         self.model.add(DDense(self.action_size))
         self.model.initialize(init=init.Xavier(), force_reinit=True)
         self.model.hybridize()
-        self.model(nd.random.uniform(shape=(args.batch_size,self.board_x,self.board_y)))
+        self.model(nd.random.uniform(shape=(args.batch_size,1,self.board_x,self.board_y)))
 
         self.v_loss = gluon.loss.L2Loss()
         self.pi_loss = gluon.loss.SoftmaxCrossEntropyLoss()
         self.trainer = gluon.Trainer(self.model.collect_params(),'adam')
 
     def predict(self,x):
-        return self.model(x)
+        #start = time.time()
+        p,v = self.model(x)
+        #end = time.time()
+        #print("predict time:", end - start)
+        return p,v
 
