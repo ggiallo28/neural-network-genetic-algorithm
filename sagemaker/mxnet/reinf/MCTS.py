@@ -19,7 +19,6 @@ class MCTS():
 
         self.Es = {}        # stores game.getGameEnded ended for board s
         self.Vs = {}        # stores game.getValidMoves for board s
-        self.cBoard = []
 
     def getActionProb(self, canonicalBoard, temp=1):
         """
@@ -34,16 +33,18 @@ class MCTS():
             self.search(canonicalBoard)
 
         s = self.game.stringRepresentation(canonicalBoard)
-        counts = [self.Nsa[(s,a)] if (s,a) in self.Nsa else 0 for a in range(self.game.getActionSize())]
+        counts = nd.zeros((self.game.getActionSize(),))
+        for a in range(self.game.getActionSize()):
+            if (s,a) in self.Nsa:
+                counts[a] = self.Nsa[(s,a)]
 
         if temp==0:
-            bestA = nd.argmax(counts)
-            probs = [0]*len(counts)
+            bestA = int(nd.argmax(counts,axis=0).asscalar())
+            probs = nd.zeros(counts.shape)
             probs[bestA]=1
             return probs
 
-        counts = [x**(1./temp) for x in counts]
-        return nd.array([x/float(sum(counts)) for x in counts])
+        return counts/nd.sum(counts)
 
 
     def search(self, canonicalBoard):
@@ -76,7 +77,6 @@ class MCTS():
 
         if s not in self.Ps:
             # leaf node
-            # self.cBoard.append(list(canonicalBoard))
             self.Ps[s],v = self.nnet.predict(canonicalBoard, True)
             valids = self.game.getValidMoves(canonicalBoard, 1)
             self.Ps[s] = self.Ps[s]*valids      # masking invalid moves

@@ -64,7 +64,7 @@ class Coach():
             r = self.game.getGameEnded(board, curPlayer)
 
             if r!=0:
-                return [(x[0],x[2],r*((-1)**(x[1]!=curPlayer))) for x in trainExamples]
+                return [( x[0], x[2], nd.array([r*((-1)**(x[1]!=curPlayer))],dtype='float32') ) for x in trainExamples]
 
     def generate(self, nnet):
         """

@@ -77,8 +77,8 @@ class TicTacToeNNet():
         self.model(nd.random.uniform(shape=(args.batch_size,1,self.board_x,self.board_y)))
 
         self.v_loss = gluon.loss.L2Loss()
-        self.pi_loss = gluon.loss.SoftmaxCrossEntropyLoss()
-        self.trainer = gluon.Trainer(self.model.collect_params(),'adam')
+        self.pi_loss = gluon.loss.SoftmaxCrossEntropyLoss(sparse_label=False)
+        self.trainer = gluon.Trainer(self.model.collect_params(),'adam',{'learning_rate': args.lr})
 
     def predict(self,x):
         #start = time.time()

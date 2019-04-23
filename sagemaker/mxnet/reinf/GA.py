@@ -2,6 +2,7 @@ import numpy
 from Arena import Arena
 from MCTS import MCTS
 
+from mxnet import nd
 from collections import deque
 import time, os, sys
 from pickle import Pickler, Unpickler

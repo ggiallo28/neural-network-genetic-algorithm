@@ -32,6 +32,7 @@ args = dotdict({
 
 if args.cuda:
     ctx = mx.gpu()
+    mx.ctx.default(ctx)
 else:
     ctx = mx.cpu()
 
@@ -43,6 +44,7 @@ class NNetWrapper(NeuralNet):
         self.loss = 0
         self.name = str(hex(id(self)))
         self.loss = 99999999999
+        self.game = game
         self.ctx = mx.gpu() if args.cuda else mx.cpu()
 
     def train(self, train_data):
@@ -60,8 +62,8 @@ class NNetWrapper(NeuralNet):
                 target_v = target_v.as_in_context(ctx)
                 with autograd.record():
                     pi, v = self.nnet.predict(input_board)
-                    self.pi_loss = self.nnet.pi_loss(pi,target_pis)
-                    self.v_loss = self.nnet.v_loss(out,target_vs)
+                    self.pi_loss = self.nnet.pi_loss(pi,target_pi)
+                    self.v_loss = self.nnet.v_loss(v,target_v)
                     self.loss = self.pi_loss + self.v_loss
                 self.loss.backward()
                 self.nnet.trainer.step(args.epochs)
