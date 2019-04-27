@@ -15,13 +15,6 @@ Date: Jan 5, 2018.
 Based on the OthelloNNet by SourKream and Surag Nair.
 """
 
-class Reshape(Block):
-    def __init__(self, **kwargs):
-        super(Reshape, self).__init__(**kwargs)
-
-    def forward(self, x):
-        return nd.expand_dims(x, axis=1)
-
 class DDense(Block):
     def __init__(self, action_size, **kwargs):
         super(DDense, self).__init__(**kwargs)

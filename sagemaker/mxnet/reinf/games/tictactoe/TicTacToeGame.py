@@ -115,7 +115,7 @@ class TicTacToeGame(Game):
         return board.reshape((9)).__repr__().split('\n')[1]
 
 def display(board):
-    n = board.shape[0]
+    n = board.shape[2]
 
     print("   ", end="")
     for y in range(n):
@@ -128,7 +128,7 @@ def display(board):
     for y in range(n):
         print(y, "|",end="")    # print the row #
         for x in range(n):
-            piece = board[y][x]    # get the piece to print
+            piece = board[0][0][y][x]    # get the piece to print
             if piece == -1: print("X ",end="")
             elif piece == 1: print("O ",end="")
             else:

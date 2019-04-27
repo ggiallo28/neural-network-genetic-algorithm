@@ -10,7 +10,7 @@ from NeuralNet import NeuralNet
 import mxnet as mx
 from mxnet import nd, gpu, gluon, init, autograd
 import argparse
-from .TicTacToeNNet import TicTacToeNNet as onnet
+from .TicTacToeResNNet import TicTacToeNNet as onnet
 
 """
 NeuralNet wrapper class for the TicTacToeNNet.
@@ -86,6 +86,7 @@ class NNetWrapper(NeuralNet):
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = os.path.join(folder, filename)
+        print(filepath)
         if not os.path.exists(filepath):
             raise("No model in path '{}'".format(filepath))
         self.nnet.model.load_parameters(filepath)

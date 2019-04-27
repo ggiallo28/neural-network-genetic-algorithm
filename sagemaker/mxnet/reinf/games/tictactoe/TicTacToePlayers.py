@@ -44,4 +44,4 @@ class HumanTicTacToePlayer():
             else:
                 print('Invalid')
 
-        return a
+        return nd.array([a])
