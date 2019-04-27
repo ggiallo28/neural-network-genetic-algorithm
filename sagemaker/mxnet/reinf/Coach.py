@@ -49,10 +49,8 @@ class Coach():
             canonicalBoard = self.game.getCanonicalForm(board,curPlayer)
             temp = int(episodeStep < self.args.tempThreshold)
 
-            #start = time.time()
             pi = mcts.getActionProb(canonicalBoard, temp=temp)
-            #end = time.time()
-            #print("mtcs time:", end - start)
+
             sym = self.game.getSymmetries(canonicalBoard[0], pi)
 
             for b,p in sym:
@@ -78,8 +76,8 @@ class Coach():
         for i in range(1, self.args.numIters+1):
             if not self.skipFirstSelfPlay or i>1:
                 self.iterationTrainExamples = deque([], maxlen=self.args.maxlenOfQueue)
-                end = time.time()
 
+                end = time.time()
                 futurelist = []
                 executor = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
                 for eps in range(self.args.numEps):

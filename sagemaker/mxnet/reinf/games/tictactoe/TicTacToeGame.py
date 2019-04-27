@@ -22,7 +22,7 @@ class TicTacToeGame(Game):
     def getInitBoard(self):
         # return initial board (numpy board)
         b = Board(self.n)
-        return nd.array(b.pieces)
+        return b.pieces
 
     def getBoardSize(self):
         # (a,b) tuple
@@ -45,16 +45,16 @@ class TicTacToeGame(Game):
 
     def getValidMoves(self, board, player):
         # return a fixed size binary vector
-        valids = [0]*self.getActionSize()
+        valids = nd.zeros((self.getActionSize(),))
         b = Board(self.n)
         b.pieces = board.copy()
         legalMoves =  b.get_legal_moves(player)
         if len(legalMoves)==0:
             valids[-1]=1
-            return nd.array(valids)
+            return valids
         for x, y in legalMoves:
             valids[self.n*x+y]=1
-        return nd.array(valids)
+        return valids
 
     def getGameEnded(self, board, player):
         # return 0 if not ended, 1 if player 1 won, -1 if player 1 lost

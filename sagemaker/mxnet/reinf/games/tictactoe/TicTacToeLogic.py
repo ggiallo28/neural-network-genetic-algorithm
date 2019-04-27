@@ -19,7 +19,7 @@ Based on the board for the game of Othello by Eric P. Nichols.
 class Board():
 
     # list of all 8 directions on the board, as (x,y) offsets
-    __directions = [(1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(-1,1),(0,1)]
+    #__directions = [(1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(-1,1),(0,1)]
 
     def __init__(self, n=3):
         "Set up initial board configuration."
@@ -59,35 +59,53 @@ class Board():
         @param color (1=white,-1=black)
         """
         win = self.n
+
+        # check sure nowin
+        if (self.pieces[0][0].abs().sum() < 2*win-1):
+            return False
         # check y-strips
-        for y in range(self.n):
-            count = 0
-            for x in range(self.n):
-                if self[x][y]==color:
-                    count += 1
-            if count==win:
-                return True
+        if (self.pieces[0][0].sum(axis=0)*color).max() == win:
+            return True
         # check x-strips
-        for x in range(self.n):
-            count = 0
-            for y in range(self.n):
-                if self[x][y]==color:
-                    count += 1
-            if count==win:
-                return True
+        if (self.pieces[0][0].sum(axis=1)*color).max() == win:
+            return True
         # check two diagonal strips
-        count = 0
-        for d in range(self.n):
-            if self[d][d]==color:
-                count += 1
-        if count==win:
+        if (self.pieces[0][0].diag().sum()*color).max() == win:
             return True
-        count = 0
-        for d in range(self.n):
-            if self[d][self.n-d-1]==color:
-                count += 1
-        if count==win:
+        if (self.pieces[0][0].flip(axis=0).diag().sum()*color).max() == win:
             return True
+
+        # check y-strips
+        #for y in range(self.n):
+        #    count = 0
+        #    for x in range(self.n):
+        #        if self[x][y]==color:
+        #            count += 1
+        #    if count==win:
+        #        return True
+        ## check x-strips
+        #for x in range(self.n):
+        #    count = 0
+        #    for y in range(self.n):
+        #        if self[x][y]==color:
+        #            count += 1
+        #    if count==win:
+        #        return True
+        ## check two diagonal strips
+        #count = 0
+        #for d in range(self.n):
+        #    if self[d][d]==color:
+        #        count += 1
+        #if count==win:
+        #    self.pieces[0][0].diag().sum()
+        #    return True
+        #count = 0
+        #for d in range(self.n):
+        #    if self[d][self.n-d-1]==color:
+        #        count += 1
+        #if count==win:
+        #    self.pieces[0][0].flip(axis=0).diag().sum()
+        #    return True
 
         return False
 

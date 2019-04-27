@@ -19,6 +19,11 @@ class MCTS():
 
         self.Es = {}        # stores game.getGameEnded ended for board s
         self.Vs = {}        # stores game.getValidMoves for board s
+        self.T = []
+        self.P = []
+        self.B = []
+        self.C = []
+        self.D = []
 
     def getActionProb(self, canonicalBoard, temp=1):
         """
@@ -29,8 +34,21 @@ class MCTS():
             probs: a policy vector where the probability of the ith action is
                    proportional to Nsa[(s,a)]**(1./temp)
         """
+        start = time.time()
         for i in range(self.args.numMCTSSims):
             self.search(canonicalBoard)
+        end = time.time()
+        #print("search time:", end - start, sum(self.T)+sum(self.P)+sum(self.B)+sum(self.C)+sum(self.D))
+        #print("T=",sum(self.T))
+        #self.T = []
+        #print("P=",sum(self.P))
+        #self.P = []
+        #print("B=",sum(self.B))
+        #self.B = []
+        #print("C=",sum(self.C))
+        #self.C = []
+        #print("D=",sum(self.D))
+        #self.D = []
 
         s = self.game.stringRepresentation(canonicalBoard)
         counts = nd.zeros((self.game.getActionSize(),))
@@ -40,11 +58,11 @@ class MCTS():
 
         if temp==0:
             bestA = int(nd.argmax(counts,axis=0).asscalar())
-            probs = nd.zeros(counts.shape)
+            probs = nd.zeros_like(counts)
             probs[bestA]=1
             return probs
 
-        return counts/nd.sum(counts)
+        return counts/counts.sum()
 
 
     def search(self, canonicalBoard):
@@ -67,20 +85,31 @@ class MCTS():
             v: the negative of the value of the current canonicalBoard
         """
 
+
         s = self.game.stringRepresentation(canonicalBoard)
 
         if s not in self.Es:
+            start = time.time()
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
+            end = time.time()
+            self.D.append(end - start)
         if self.Es[s]!=0:
             # terminal node
             return -self.Es[s]
 
+
         if s not in self.Ps:
             # leaf node
+            start = time.time()
             self.Ps[s],v = self.nnet.predict(canonicalBoard, True)
+            end = time.time()
+            self.P.append(end - start)
+
+            start = time.time()
             valids = self.game.getValidMoves(canonicalBoard, 1)
+
             self.Ps[s] = self.Ps[s]*valids      # masking invalid moves
-            sum_Ps_s = nd.sum(self.Ps[s])
+            sum_Ps_s = self.Ps[s].sum()
             if sum_Ps_s > 0:
                 self.Ps[s] /= sum_Ps_s    # renormalize
             else:
@@ -90,18 +119,21 @@ class MCTS():
                 # If you have got dozens or hundreds of these messages you should pay attention to your NNet and/or training process.
                 print("All valid moves were masked, do workaround.")
                 self.Ps[s] = self.Ps[s] + valids
-                self.Ps[s] /= nd.sum(self.Ps[s])
+                self.Ps[s] /= self.Ps[s].sum()
 
             self.Vs[s] = valids
             self.Ns[s] = 0
+            end = time.time()
+            self.T.append(end - start)
             return -v
 
+        start = time.time()
         valids = self.Vs[s]
 
         cur_best = -float('inf')
         best_act = -1
-
         # pick the action with the highest upper confidence bound
+
         for a in range(self.game.getActionSize()):
             if valids[a]:
                 if (s,a) in self.Qsa:
@@ -112,20 +144,27 @@ class MCTS():
                 if u > cur_best:
                     cur_best = u
                     best_act = a
-
         a = best_act
+        end = time.time()
+        self.T.append(end - start)
+
+        start = time.time()
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
+        end = time.time()
+        self.B.append(end - start)
 
         v = self.search(next_s)
 
+        start = time.time()
         if (s,a) in self.Qsa:
             self.Qsa[(s,a)] = (self.Nsa[(s,a)]*self.Qsa[(s,a)] + v)/(self.Nsa[(s,a)]+1)
             self.Nsa[(s,a)] += 1
-
         else:
             self.Qsa[(s,a)] = v
             self.Nsa[(s,a)] = 1
 
         self.Ns[s] += 1
+        end = time.time()
+        self.C.append(end - start)
         return -v
