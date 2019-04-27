@@ -109,9 +109,10 @@ class TicTacToeGame(Game):
                 l += [(newB, nd.concat(newPi.reshape((self.n*self.n)), pi[-1], dim=0))]
         return l
 
+
     def stringRepresentation(self, board):
         # 8x8 numpy array (canonical board)
-        return board.__repr__()
+        return board.reshape((9)).__repr__().split('\n')[1]
 
 def display(board):
     n = board.shape[0]
