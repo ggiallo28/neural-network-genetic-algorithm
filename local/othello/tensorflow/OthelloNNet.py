@@ -1,6 +1,7 @@
 import sys
 sys.path.append('..')
 from utils import *
+import numpy as np
 
 import tensorflow as tf
 
@@ -11,7 +12,7 @@ class OthelloNNet():
         self.action_size = game.getActionSize()
         self.args = args
 
-        # Renaming functions 
+        # Renaming functions
         Relu = tf.nn.relu
         Tanh = tf.nn.tanh
         BatchNormalization = tf.layers.batch_normalization
@@ -20,7 +21,7 @@ class OthelloNNet():
 
         # Neural Net
         self.graph = tf.Graph()
-        with self.graph.as_default(): 
+        with self.graph.as_default():
             self.input_boards = tf.placeholder(tf.float32, shape=[None, self.board_x, self.board_y])    # s: batch_size x board_x x board_y
             self.dropout = tf.placeholder(tf.float32)
             self.isTraining = tf.placeholder(tf.bool, name="is_training")
@@ -52,6 +53,9 @@ class OthelloNNet():
         with tf.control_dependencies(update_ops):
             self.train_step = tf.train.AdamOptimizer(self.args.lr).minimize(self.total_loss)
 
+    def get_parameters(self):
+        return np.array(self.graph.get_collection('variables'))
+
 class ResNet():
     def __init__(self, game, args):
         # game params
@@ -61,7 +65,7 @@ class ResNet():
 
         # Neural Net
         self.graph = tf.Graph()
-        with self.graph.as_default(): 
+        with self.graph.as_default():
             self.input_boards = tf.placeholder(tf.float32, shape=[None, self.board_x, self.board_y])    # s: batch_size x board_x x board_y
             self.dropout = tf.placeholder(tf.float32)
             self.isTraining = tf.placeholder(tf.bool, name="is_training")
@@ -105,8 +109,8 @@ class ResNet():
             value = tf.layers.dense(value, units=256)
             value = tf.nn.relu(value)
             value = tf.layers.dense(value, 1)
-            self.v = tf.nn.tanh(value) 
-                                                              
+            self.v = tf.nn.tanh(value)
+
             self.calculate_loss()
 
     def residual_block(self,inputLayer, filters,kernel_size,stage,block):
@@ -122,7 +126,7 @@ class ResNet():
         residual_layer = tf.layers.batch_normalization(residual_layer, axis=3, name=bn_name+'2b', training=self.isTraining)
         add_shortcut = tf.add(residual_layer, shortcut)
         residual_result = tf.nn.relu(add_shortcut)
-        
+
         return residual_result
 
     def calculate_loss(self):

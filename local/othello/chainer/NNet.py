@@ -20,7 +20,7 @@ from .OthelloNNet import OthelloNNet as onnet
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
-    'epochs': 10,
+    'epochs': 1,
     'batch_size': 64,
     'device': 0 if chainer.cuda.available else -1,  # GPU device id for training model, -1 indicates to use CPU.
     'num_channels': 512,
@@ -44,6 +44,9 @@ class NNetWrapper(NeuralNet):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
+        self.loss = 99999999999
+        self.name = str(hex(id(self)))
+        self.game = game
 
         device = args.device
         if device >= 0:
@@ -124,6 +127,8 @@ class NNetWrapper(NeuralNet):
                 l_pi = self.loss_pi(target_pis, out_pi)
                 l_v = self.loss_v(target_vs, out_v)
                 total_loss = l_pi + l_v
+                self.loss = total_loss
+
 
                 # record loss
                 pi_loss = l_pi.data
@@ -193,3 +198,13 @@ class NNetWrapper(NeuralNet):
         if not os.path.exists(filepath):
             raise("No model in path {}".format(filepath))
         serializers.load_npz(filepath, self.nnet)
+
+    def get_weights(self):
+        return self.nnet.model.get_weights()
+
+    def set_weights(self, weights):
+        self.nnet.model.set_weights(weights)
+        return self
+
+    def get_loss(self):
+        return self.loss

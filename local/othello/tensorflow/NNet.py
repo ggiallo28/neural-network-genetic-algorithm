@@ -7,7 +7,6 @@ import math
 import sys
 sys.path.append('../../')
 from utils import *
-from pytorch_classification.utils import Bar, AverageMeter
 from NeuralNet import NeuralNet
 
 import tensorflow as tf
@@ -16,7 +15,7 @@ from .OthelloNNet import OthelloNNet as onnet
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
-    'epochs': 10,
+    'epochs': 1,
     'batch_size': 64,
     'num_channels': 512,
 })
@@ -26,6 +25,9 @@ class NNetWrapper(NeuralNet):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
+        self.loss = 99999999999
+        self.name = str(hex(id(self)))
+        self.game = game
 
         self.sess = tf.Session(graph=self.nnet.graph)
         self.saver = None
@@ -40,13 +42,13 @@ class NNetWrapper(NeuralNet):
 
         for epoch in range(args.epochs):
             print('EPOCH ::: ' + str(epoch+1))
-            data_time = AverageMeter()
-            batch_time = AverageMeter()
-            pi_losses = AverageMeter()
-            v_losses = AverageMeter()
+            #data_time = AverageMeter()
+            #batch_time = AverageMeter()
+            #pi_losses = AverageMeter()
+            #v_losses = AverageMeter()
             end = time.time()
 
-            bar = Bar('Training Net', max=int(len(examples)/args.batch_size))
+            #bar = Bar('Training Net', max=int(len(examples)/args.batch_size))
             batch_idx = 0
 
             # self.sess.run(tf.local_variables_initializer())
@@ -58,32 +60,33 @@ class NNetWrapper(NeuralNet):
                 input_dict = {self.nnet.input_boards: boards, self.nnet.target_pis: pis, self.nnet.target_vs: vs, self.nnet.dropout: args.dropout, self.nnet.isTraining: True}
 
                 # measure data loading time
-                data_time.update(time.time() - end)
+                #data_time.update(time.time() - end)
 
                 # record loss
                 self.sess.run(self.nnet.train_step, feed_dict=input_dict)
                 pi_loss, v_loss = self.sess.run([self.nnet.loss_pi, self.nnet.loss_v], feed_dict=input_dict)
-                pi_losses.update(pi_loss, len(boards))
-                v_losses.update(v_loss, len(boards))
+                #pi_losses.update(pi_loss, len(boards))
+                #v_losses.update(v_loss, len(boards))
+                self.loss = pi_loss + v_loss
 
                 # measure elapsed time
-                batch_time.update(time.time() - end)
-                end = time.time()
+                #batch_time.update(time.time() - end)
+                #end = time.time()
                 batch_idx += 1
 
                 # plot progress
-                bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss_pi: {lpi:.4f} | Loss_v: {lv:.3f}'.format(
-                            batch=batch_idx,
-                            size=int(len(examples)/args.batch_size),
-                            data=data_time.avg,
-                            bt=batch_time.avg,
-                            total=bar.elapsed_td,
-                            eta=bar.eta_td,
-                            lpi=pi_losses.avg,
-                            lv=v_losses.avg,
-                            )
-                bar.next()
-            bar.finish()
+                #bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss_pi: {lpi:.4f} | Loss_v: {lv:.3f}'.format(
+                #            batch=batch_idx,
+                #            size=int(len(examples)/args.batch_size),
+                #            data=data_time.avg,
+                #            bt=batch_time.avg,
+                #            total=bar.elapsed_td,
+                #            eta=bar.eta_td,
+                #            lpi=pi_losses.avg,
+                #            lv=v_losses.avg,
+                #            )
+            #    bar.next()
+            #bar.finish()
 
 
     def predict(self, board):
@@ -109,7 +112,7 @@ class NNetWrapper(NeuralNet):
             os.mkdir(folder)
         else:
             print("Checkpoint Directory exists! ")
-        if self.saver == None:            
+        if self.saver == None:
             self.saver = tf.train.Saver(self.nnet.graph.get_collection('variables'))
         with self.nnet.graph.as_default():
             self.saver.save(self.sess, filepath)
@@ -121,3 +124,17 @@ class NNetWrapper(NeuralNet):
         with self.nnet.graph.as_default():
             self.saver = tf.train.Saver()
             self.saver.restore(self.sess, filepath)
+
+    def get_weights(self):
+        tensors = self.nnet.get_parameters()
+        parameters = []
+        with self.sess.as_default():
+            for idx,tns in enumerate(tensors):
+                parameters.append(tns.read_value().eval())
+        return np.array(parameters)
+
+    def set_weights(self, weights):
+        variables = self.nnet.graph.get_collection('variables')
+
+    def get_loss(self):
+        return self.loss

@@ -37,7 +37,7 @@ class OthelloNNet():
 
         self.session = K.get_session()
         self.graph = tf.get_default_graph()
-        end = time.time()
+        #end = time.time()
         self.model.predict(np.array(np.zeros((1,self.board_x,self.board_y)))) #warmup
-        print(time.time() - end)
-        self.graph.finalize()
+        #print(time.time() - end)
+        #self.graph.finalize()

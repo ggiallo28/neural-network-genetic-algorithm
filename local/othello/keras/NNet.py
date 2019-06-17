@@ -16,7 +16,7 @@ from .OthelloNNet import OthelloNNet as onnet
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
-    'epochs': 3,
+    'epochs': 1,
     'batch_size': 64,
     'cuda': False,
     'num_channels': 512,
@@ -27,6 +27,9 @@ class NNetWrapper(NeuralNet):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
+        self.loss = 99999999999
+        self.name = str(hex(id(self)))
+        self.game = game
 
     def train(self, examples):
         """
@@ -36,7 +39,8 @@ class NNetWrapper(NeuralNet):
         input_boards = np.asarray(input_boards)
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
-        self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs)
+        train_history = self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs)
+        self.loss = train_history.history['loss']
 
     def predict(self, board):
         """
@@ -69,3 +73,13 @@ class NNetWrapper(NeuralNet):
         if not os.path.exists(filepath):
             raise("No model in path {}".format(filepath))
         self.nnet.model.load_weights(filepath)
+
+    def get_weights(self):
+        return self.nnet.model.get_weights()
+
+    def set_weights(self, weights):
+        self.nnet.model.set_weights(weights)
+        return self
+
+    def get_loss(self):
+        return self.loss

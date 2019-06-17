@@ -1,1 +1,17 @@
 pretrained_models/
+*.DS_Store
+sagemaker/keras/reinf/__pycache__/*
+sagemaker/keras/reinf/games/__pycache__/*
+sagemaker/keras/reinf/games/othello/__pycache__/*
+sagemaker/keras/reinf/games/othello/keras/__pycache__/*
+sagemaker/keras/reinf/games/tictactoe/__pycache__/*
+sagemaker/keras/reinf/games/tictactoe/keras/__pycache__/*
+sagemaker/keras/reinf/rts/__pycache__/*
+sagemaker/keras/reinf/rts/keras/__pycache__/*
+sagemaker/keras/reinf/rts/src/__pycache__/*
+sagemaker/keras/reinf/rts/visualization/__pycache__/*
+sagemaker/mxnet/reinf/__pycache__/*
+sagemaker/mxnet/reinf/games/othello/__pycache__/*
+sagemaker/mxnet/reinf/games/othello/mxnet/__pycache__/*
+sagemaker/mxnet/reinf/games/tictactoe/__pycache__/*
+sagemaker/mxnet/reinf/games/tictactoe/mxnet/__pycache__/*

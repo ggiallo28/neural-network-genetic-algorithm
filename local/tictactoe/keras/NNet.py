@@ -37,6 +37,8 @@ class NNetWrapper(NeuralNet):
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
         self.loss = 99999999999
+        self.name = str(hex(id(self)))
+        self.game = game
 
     def train(self, examples):
         """
@@ -88,6 +90,7 @@ class NNetWrapper(NeuralNet):
 
     def set_weights(self, weights):
         self.nnet.model.set_weights(weights)
+        return self
 
     def get_loss(self):
         return self.loss

@@ -4,7 +4,6 @@ sys.path.append('..')
 from Game import Game
 from .TicTacToeLogic import Board
 from mxnet import nd
-import numpy as np
 
 """
 Game class implementation for the game of TicTacToe.
@@ -112,7 +111,7 @@ class TicTacToeGame(Game):
 
     def stringRepresentation(self, board):
         # 8x8 numpy array (canonical board)
-        return board.reshape((9)).__repr__().split('\n')[1]
+        return board.reshape((self.n*self.n)).__repr__().split('\n')[1]
 
 def display(board):
     n = board.shape[2]

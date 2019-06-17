@@ -1,25 +1,28 @@
 from Coach import Coach
-from tictactoe.TicTacToeGame import TicTacToeGame as Game
-from tictactoe.mxnet.NNet import NNetWrapper as nn
-#from othello.OthelloGame import OthelloGame as Game
+#from tictactoe.TicTacToeGame import TicTacToeGame as Game
+#from tictactoe.keras.NNet import NNetWrapper as nn
+from othello.OthelloGame import OthelloGame as Game
 #from othello.keras.NNet import NNetWrapper as nn
+from othello.tensorflow.NNet import NNetWrapper as nn # ResNet
+#from othello.pytorch.NNet import NNetWrapper as nn
+#from othello.chainer.NNet import NNetWrapper as nn
 from utils import *
 import numpy
 import GA
+import pickle
 
 args = dotdict({
     'numIters': 1,
-    'numEps': 40,
+    'numEps': 1,
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
     'numMCTSSims': 15,
-    'arenaCompare': 40,
+    'arenaCompare': 5,
     'cpuct': 1,
 
-    'checkpoint': './temp/',
+    'model_path': './temp/',
     'load_model': False,
-    'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
     'numItersForTrainExamplesHistory': 20,
 })
 
@@ -28,85 +31,76 @@ Genetic algorithm parameters:
     Mating pool size
     Population size
 """
-sol_per_pop = 10
-num_parents = 4
-#Creating the initial population.
-new_population = []
-game = Game()
-for i in range(0,sol_per_pop):
-    nnet = nn(game)
-    new_population.append(nnet)
-new_population = numpy.array(new_population)
+sol_per_pop = 3
+num_parents = 2
 
+# Creating the environment.
+game = Game()
+master = Coach(game, args)
+
+# Creating the initial population.
+new_population = numpy.array([nn(game) for i in range(0,sol_per_pop)])
+
+if args['load_model']:
+    for i,p in enumerate(new_population):
+        p.load_checkpoint(args['model_path'], 'padawan{}.network'.format(i))
+    master.loadTrainExamples('{}/train.examples'.format(args['model_path']))
+
+ancestors = list(range(0,sol_per_pop))
+alpha_index = 0
 num_generations = 100
+
 for generation in range(num_generations):
-    # Training each chromosome in the population.
-    for iidx, nnet in enumerate(new_population):
-        fab = Coach(Game(), nnet, args)
-        fab.learn(iidx)
+    # Generate Train Examples by using alpha chromosome
+    alpha_padawan = new_population[alpha_index] # Select Alpha Padawan, usually is the first in list.
+    train_examples = master.generate(alpha_padawan)
+
+    # Training each chromosome in the population osing Train Examples.
+    master.train(new_population, train_examples)
 
     # Measing the fitness of each chromosome in the population.
-    fitness = GA.cal_pop_fitness(new_population, args)
+    fitness = GA.cal_pop_fitness(new_population, game, args)
 
     # Selecting the best parents in the population for mating.
-    nnet_parents = GA.select_mating_pool(new_population, fitness, num_parents)
-    parents = []
-    for p in nnet_parents:
-        parents.append(p.get_weights())
+    nnet_parents, parents_weights, indices = GA.select_mating_pool(new_population, fitness, num_parents)
 
     # Generating next generation using crossover.
-    num_weights = len(parents[0])
-    offspring_crossover = GA.crossover(parents, offspring_size=(sol_per_pop-num_parents, num_weights))
+    offspring_crossover = GA.crossover(parents_weights, offspring_size=sol_per_pop-num_parents)
 
     # Adding some variations to the offsrping using mutation.
     offspring_mutation = GA.mutation(offspring_crossover)
-    nnet_offspring_mutation = []
-    for m in offspring_mutation:
-        nnet = nn(game)
-        nnet.set_weights(m)
-        nnet_offspring_mutation.append(nnet)
+    nnet_offspring_mutation = [nn(game).set_weights(m) for m in offspring_mutation]
 
     # Creating the new population based on the parents and offspring.
     new_population[0:num_parents] = nnet_parents
     new_population[num_parents:] = nnet_offspring_mutation
 
-    # The best result in the current iteration.
-    lossness = []
-    for p in nnet_parents:
-        lossness.append(p.get_loss())
-    print("Generation : ", generation, " Best result : ", min(lossness)[0])
-    print(new_population)
+    # Save Current State
+    print("Save Checkpoint")
+    for i,p in enumerate(new_population):
+        p.save_checkpoint(args['model_path'], 'padawan{}.network'.format(i))
+    master.saveTrainExamples(args['model_path'], 'train.examples')
+
+    # Print current results
+    lossness = [p.get_loss() for p in nnet_parents]
+    ancestors = [indices.index(i) for i in set(ancestors).intersection(indices)]
+    print("Generation : {} | Best result : {} | Ancestors {}".format(generation, min(lossness)[0], ancestors) )
+    print('>Alpha Padawan ', nnet_parents[0].name)
+    for m in nnet_parents[1:]:
+        print('Senior Padawan ', m.name)
+    for m in nnet_offspring_mutation:
+        print('Junior Padawan ', m.name)
+
+    if (len(ancestors) == 0):
+        print("All ancestors are dead, generating..")
+        ancestors = list(range(0,num_parents))
+    alpha_index = 0
 
 # Getting the best solution after iterating finishing all generations.
-#At first, the fitness is calculated for each solution in the final generation.
+# At first, the fitness is calculated for each solution in the final generation.
 fitness = GA.cal_pop_fitness(new_population, args)
 # Then return the index of that solution corresponding to the best fitness.
 best_match_idx = numpy.where(fitness == numpy.max(fitness))
 
 print("Best solution : ", new_population[best_match_idx])
 print("Best solution fitness : ", fitness[best_match_idx])
-
-
-
-
-# training new network, keeping a copy of the old one
-# self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-# self.pnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-# pmcts = MCTS(self.game, self.pnet, self.args)
-
-#nmcts = MCTS(self.game, self.nnet, self.args)
-
-#print('PITTING AGAINST PREVIOUS VERSION')
-#arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
-#              lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game)
-#pwins, nwins, draws = arena.playGames(self.args.arenaCompare)
-
-#print('NEW/PREV WINS : %d / %d ; DRAWS : %d' % (nwins, pwins, draws))
-#if pwins+nwins == 0 or float(nwins)/(pwins+nwins) < self.args.updateThreshold:
-#    print('REJECTING NEW MODEL')
-#    self.nnet.load_checkpoint(folder=self.args.checkpoint, filename='temp.pth.tar')
-#else:
-#    print('ACCEPTING NEW MODEL')
-#    self.nnet.save_checkpoint(folder=self.args.checkpoint, filename=self.getCheckpointFile(i))
-#    self.nnet.save_checkpoint(folder=self.args.checkpoint, filename='best.pth.tar')
-
