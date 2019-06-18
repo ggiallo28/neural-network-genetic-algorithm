@@ -2,9 +2,9 @@ from Coach import Coach
 #from tictactoe.TicTacToeGame import TicTacToeGame as Game
 #from tictactoe.keras.NNet import NNetWrapper as nn
 from othello.OthelloGame import OthelloGame as Game
-from othello.keras.NNet import NNetWrapper as nn
+#from othello.keras.NNet import NNetWrapper as nn
 #from othello.tensorflow.NNet import NNetWrapper as nn # ResNet
-#from othello.pytorch.NNet import NNetWrapper as nn
+from othello.pytorch.NNet import NNetWrapper as nn
 #from othello.chainer.NNet import NNetWrapper as nn
 from utils import *
 import numpy

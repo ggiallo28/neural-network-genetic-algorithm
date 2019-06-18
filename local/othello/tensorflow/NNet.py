@@ -10,7 +10,9 @@ from utils import *
 from NeuralNet import NeuralNet
 
 import tensorflow as tf
-from .OthelloNNet import OthelloNNet as onnet
+#from .OthelloNNet import OthelloNNet as onnet
+from .OthelloNNet import ResNet as onnet
+
 
 args = dotdict({
     'lr': 0.001,
@@ -130,7 +132,7 @@ class NNetWrapper(NeuralNet):
         parameters = []
         with self.sess.as_default():
             for idx,tns in enumerate(variables):
-                parameters.append(tns.eval())
+                parameters.append(tns.read_value().eval())
         return np.array(parameters)
 
     def set_weights(self, weights):

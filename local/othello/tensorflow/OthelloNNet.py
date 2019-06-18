@@ -58,6 +58,7 @@ class OthelloNNet():
 
 class ResNet():
     def __init__(self, game, args):
+        print("Creating ResNet")
         # game params
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
@@ -139,4 +140,5 @@ class ResNet():
         with tf.control_dependencies(update_ops):
             self.train_step = tf.train.AdamOptimizer(self.args.lr).minimize(self.total_loss)
 
-
+    def get_parameters(self):
+        return np.array(self.graph.get_collection('trainable_variables'))
