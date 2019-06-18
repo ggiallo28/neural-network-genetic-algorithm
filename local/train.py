@@ -1,28 +1,28 @@
 from Coach import Coach
-#from tictactoe.TicTacToeGame import TicTacToeGame as Game
-#from tictactoe.keras.NNet import NNetWrapper as nn
-from othello.OthelloGame import OthelloGame as Game
+from tictactoe.TicTacToeGame import TicTacToeGame as Game
+from tictactoe.keras.NNet import NNetWrapper as nn
+#from othello.OthelloGame import OthelloGame as Game
 #from othello.keras.NNet import NNetWrapper as nn
 #from othello.tensorflow.NNet import NNetWrapper as nn # ResNet
-from othello.pytorch.NNet import NNetWrapper as nn
+#from othello.pytorch.NNet import NNetWrapper as nn
 #from othello.chainer.NNet import NNetWrapper as nn
 from utils import *
 import numpy
 import GA
-import pickle
 
 args = dotdict({
-    'numIters': 1,
-    'numEps': 1,
+    'numIters': 5,
+    'numEps': 10,
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
     'numMCTSSims': 15,
-    'arenaCompare': 5,
+    'arenaCompare': 10,
     'cpuct': 1,
 
-    'model_path': './temp/',
+    'model_path': './pretrained_models/',
     'load_model': False,
+    'load_examples': False,
     'numItersForTrainExamplesHistory': 20,
 })
 
@@ -44,6 +44,7 @@ new_population = numpy.array([nn(game) for i in range(0,sol_per_pop)])
 if args['load_model']:
     for i,p in enumerate(new_population):
         p.load_checkpoint(args['model_path'], 'padawan{}.network'.format(i))
+if args['load_examples']:
     master.loadTrainExamples('{}/train.examples'.format(args['model_path']))
 
 ancestors = list(range(0,sol_per_pop))

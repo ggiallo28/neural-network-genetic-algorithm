@@ -25,8 +25,8 @@ Based on (copy-pasted from) the NNet by SourKream and Surag Nair.
 args = dotdict({
     'lr': 0.001,
     'dropout': 0.3,
-    'epochs': 1,
-    'batch_size': 256,
+    'epochs': 2,
+    'batch_size': 64,
     'cuda': True,
     'num_channels': 512,
 })

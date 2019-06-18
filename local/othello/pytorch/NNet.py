@@ -8,7 +8,6 @@ import math
 import sys
 sys.path.append('../../')
 from utils import *
-from pytorch_classification.utils import Bar, AverageMeter
 from NeuralNet import NeuralNet
 
 import argparse
@@ -47,13 +46,13 @@ class NNetWrapper(NeuralNet):
         for epoch in range(args.epochs):
             print('EPOCH ::: ' + str(epoch+1))
             self.nnet.train()
-            data_time = AverageMeter()
-            batch_time = AverageMeter()
-            pi_losses = AverageMeter()
-            v_losses = AverageMeter()
-            end = time.time()
+            #data_time = AverageMeter()
+            #batch_time = AverageMeter()
+            #pi_losses = AverageMeter()
+            #v_losses = AverageMeter()
+            #end = time.time()
 
-            bar = Bar('Training Net', max=int(len(examples)/args.batch_size))
+            #bar = Bar('Training Net', max=int(len(examples)/args.batch_size))
             batch_idx = 0
 
             while batch_idx < int(len(examples)/args.batch_size):
@@ -68,7 +67,7 @@ class NNetWrapper(NeuralNet):
                     boards, target_pis, target_vs = boards.contiguous().cuda(), target_pis.contiguous().cuda(), target_vs.contiguous().cuda()
 
                 # measure data loading time
-                data_time.update(time.time() - end)
+                #data_time.update(time.time() - end)
 
                 # compute output
                 out_pi, out_v = self.nnet(boards)
@@ -77,8 +76,8 @@ class NNetWrapper(NeuralNet):
                 total_loss = l_pi + l_v
 
                 # record loss
-                pi_losses.update(l_pi.item(), boards.size(0))
-                v_losses.update(l_v.item(), boards.size(0))
+                #pi_losses.update(l_pi.item(), boards.size(0))
+                #v_losses.update(l_v.item(), boards.size(0))
 
                 # compute gradient and do SGD step
                 optimizer.zero_grad()
@@ -86,8 +85,8 @@ class NNetWrapper(NeuralNet):
                 optimizer.step()
 
                 # measure elapsed time
-                batch_time.update(time.time() - end)
-                end = time.time()
+                #batch_time.update(time.time() - end)
+                #end = time.time()
                 batch_idx += 1
 
                 # plot progress

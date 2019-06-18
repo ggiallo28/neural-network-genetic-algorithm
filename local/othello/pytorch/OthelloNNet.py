@@ -38,6 +38,8 @@ class OthelloNNet(nn.Module):
 
         self.fc4 = nn.Linear(512, 1)
 
+        self.layers = [self.conv1, self.conv2, self.conv3, self.conv4, self.bn1, self.bn2, self.bn3, self.bn4, self.fc1, self.fc_bn1, self.fc2, self.fc_bn2, self.fc3, self.fc4]
+
     def forward(self, s):
         #                                                           s: batch_size x board_x x board_y
         s = s.view(-1, 1, self.board_x, self.board_y)                # batch_size x 1 x board_x x board_y
@@ -54,3 +56,9 @@ class OthelloNNet(nn.Module):
         v = self.fc4(s)                                                                          # batch_size x 1
 
         return F.log_softmax(pi, dim=1), torch.tanh(v)
+
+    def get_parameters(self):
+        for l in self.layers:
+            print(l.weight)
+
+

@@ -68,7 +68,7 @@ def crossover(parents, offspring_size, nn):
         female = parents[female_idx].get_weights()
         # Create crossover
         onesm = np.ones(male.shape)
-        alpha = np.random.uniform(female.shape)
+        alpha = np.random.uniform(0,1,female.shape)
         # The new offspring will take genes from both parents
         babies[k] = nn(game).set_weights((onesm-alpha)*male + alpha*female)
         print('Mating Crossover. Baby:',babies[k].name,'= Male:',parents[male_idx].name,'& Female:',parents[female_idx].name)
