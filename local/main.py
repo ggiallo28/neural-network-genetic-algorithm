@@ -2,8 +2,8 @@ from Coach import Coach
 #from tictactoe.TicTacToeGame import TicTacToeGame as Game
 #from tictactoe.keras.NNet import NNetWrapper as nn
 from othello.OthelloGame import OthelloGame as Game
-#from othello.keras.NNet import NNetWrapper as nn
-from othello.tensorflow.NNet import NNetWrapper as nn # ResNet
+from othello.keras.NNet import NNetWrapper as nn
+#from othello.tensorflow.NNet import NNetWrapper as nn # ResNet
 #from othello.pytorch.NNet import NNetWrapper as nn
 #from othello.chainer.NNet import NNetWrapper as nn
 from utils import *
@@ -62,18 +62,17 @@ for generation in range(num_generations):
     fitness = GA.cal_pop_fitness(new_population, game, args)
 
     # Selecting the best parents in the population for mating.
-    nnet_parents, parents_weights, indices = GA.select_mating_pool(new_population, fitness, num_parents)
+    parents, indices = GA.select_mating_pool(new_population, fitness, num_parents)
 
     # Generating next generation using crossover.
-    offspring_crossover = GA.crossover(parents_weights, offspring_size=sol_per_pop-num_parents)
+    offspring_crossover = GA.crossover(parents, sol_per_pop-num_parents, nn)
 
     # Adding some variations to the offsrping using mutation.
     offspring_mutation = GA.mutation(offspring_crossover)
-    nnet_offspring_mutation = [nn(game).set_weights(m) for m in offspring_mutation]
 
     # Creating the new population based on the parents and offspring.
-    new_population[0:num_parents] = nnet_parents
-    new_population[num_parents:] = nnet_offspring_mutation
+    new_population[0:num_parents] = parents
+    new_population[num_parents:] = offspring_mutation
 
     # Save Current State
     print("Save Checkpoint")
@@ -82,13 +81,13 @@ for generation in range(num_generations):
     master.saveTrainExamples(args['model_path'], 'train.examples')
 
     # Print current results
-    lossness = [p.get_loss() for p in nnet_parents]
+    lossness = [p.get_loss() for p in parents]
     ancestors = [indices.index(i) for i in set(ancestors).intersection(indices)]
     print("Generation : {} | Best result : {} | Ancestors {}".format(generation, min(lossness)[0], ancestors) )
-    print('>Alpha Padawan ', nnet_parents[0].name)
-    for m in nnet_parents[1:]:
+    print('>Alpha Padawan ', parents[0].name)
+    for m in parents[1:]:
         print('Senior Padawan ', m.name)
-    for m in nnet_offspring_mutation:
+    for m in offspring_mutation:
         print('Junior Padawan ', m.name)
 
     if (len(ancestors) == 0):

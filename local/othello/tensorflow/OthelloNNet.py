@@ -54,7 +54,7 @@ class OthelloNNet():
             self.train_step = tf.train.AdamOptimizer(self.args.lr).minimize(self.total_loss)
 
     def get_parameters(self):
-        return np.array(self.graph.get_collection('variables'))
+        return np.array(self.graph.get_collection('trainable_variables'))
 
 class ResNet():
     def __init__(self, game, args):

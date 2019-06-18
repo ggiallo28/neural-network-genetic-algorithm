@@ -126,15 +126,19 @@ class NNetWrapper(NeuralNet):
             self.saver.restore(self.sess, filepath)
 
     def get_weights(self):
-        tensors = self.nnet.get_parameters()
+        variables = self.nnet.get_parameters()
         parameters = []
         with self.sess.as_default():
-            for idx,tns in enumerate(tensors):
-                parameters.append(tns.read_value().eval())
+            for idx,tns in enumerate(variables):
+                parameters.append(tns.eval())
         return np.array(parameters)
 
     def set_weights(self, weights):
-        variables = self.nnet.graph.get_collection('variables')
+        variables = self.nnet.get_parameters()
+        with self.sess.as_default():
+            for w,v in zip(weights, variables):
+                v.load(w, self.sess)
+        return self
 
     def get_loss(self):
-        return self.loss
+        return [self.loss]
