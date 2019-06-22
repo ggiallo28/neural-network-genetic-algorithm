@@ -8,6 +8,7 @@ from pickle import Pickler, Unpickler
 from random import shuffle, randint
 import random
 import copy
+import numpy as np
 
 def cal_pop_fitness(pop, args):
     # Calculating the fitness value of each solution in the current population.
@@ -49,51 +50,39 @@ def select_mating_pool(pop, fitness, num_parents):
         indices.append(max_fitness_idx)
 
     nnet_parents = numpy.array(parents)
-    parents_weights = [[nnet.get_weights(), nnet.name] for nnet in nnet_parents]
-    return nnet_parents, parents_weights, indices
+    return nnet_parents, indices
 
-def cross(male, female, baby, alpha):
-    for idx, val in enumerate(male):
-        if isinstance(val, list):
-            cross(male[idx], female[idx], baby[idx], alpha)
-        else:
-            baby[idx] = male[idx]*(1-alpha) + female[idx]*(alpha)
-    return baby
-
-def crossover(parents, offspring_size):
-    offspring = [[]]*offspring_size
+def crossover(parents, offspring_size, nn):
+    babies = [0]*offspring_size
+    game = parents[0].game
 
     mating_arena = list(range(offspring_size))
     shuffle(mating_arena)
+
     for k in mating_arena:
-        # Index of the first parent to mate.
+        # Index of the parents to mate.
         male_idx = k%len(parents)
-        # Index of the second parent to mate.
         female_idx = (k+1)%len(parents)
         # Get Parents
-        male = parents[male_idx][0]
-        female = parents[female_idx][0]
-        # The new offspring will have its first half of its genes taken from the first parent and its second half of its genes taken from the second parent.
-        alpha = numpy.random.uniform(0,1)
-        baby = copy.deepcopy(female)
-        cross(male, female, baby, alpha)
-        offspring[k] = baby
-        print('Mating Crossover Baby = '+str(round(1-alpha,3))+' Male(',parents[male_idx][1],') + '+str(round(alpha,3))+' Female(',parents[female_idx][1],')')
-    return offspring
+        male = parents[male_idx].get_weights()
+        female = parents[female_idx].get_weights()
+        # Create crossover
+        onesm = np.ones(male.shape)
+        alpha = np.random.uniform(0,1,female.shape)
+        # The new offspring will take genes from both parents
+        babies[k] = nn(game).set_weights((onesm-alpha)*male + alpha*female)
+        print('Mating Crossover. Baby:',babies[k].name,'= Male:',parents[male_idx].name,'& Female:',parents[female_idx].name)
 
-def mutate(offspring, mutation_propability, multiplier=0.10):
-    for idx, val in enumerate(offspring):
-        if isinstance(val, list):
-            mutate(val)
-        else:
-            sign = random.choice([-1, 1])
-            prob = numpy.random.uniform(0,1)
-            if prob <= mutation_propability:
-                offspring[idx] = val + sign*val*multiplier
+    return babies
 
 def mutation(offspring_crossover, mutation_propability=0.05, multiplier=0.10):
     # Mutation genes in each offspring randomly.
     for idx in range(len(offspring_crossover)):
         if(randint(0, 1) == 0):
-            mutate(offspring_crossover[idx][0], mutation_propability, multiplier)
+            print('Mutate Baby:',offspring_crossover[idx].name)
+            baby_data = offspring_crossover[idx].get_weights()
+            neg = numpy.random.binomial(1, mutation_propability, baby_data.shape)
+            pos = numpy.random.binomial(1, mutation_propability, baby_data.shape)
+            baby_data += (pos-neg)*baby_data*multiplier
+            offspring_crossover[idx].set_weights(baby_data)
     return offspring_crossover

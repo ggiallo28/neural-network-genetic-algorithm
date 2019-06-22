@@ -11,5 +11,5 @@ ENV NB_USER keras
 ENV NB_UID 1000
 
 # Set up the program in the image
-COPY reinf /opt/program
+COPY container /opt/program
 WORKDIR /opt/program

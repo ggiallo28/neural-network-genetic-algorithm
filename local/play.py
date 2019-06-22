@@ -7,10 +7,16 @@ from othello.OthelloPlayers import RandomPlayer
 from othello.OthelloPlayers import HumanOthelloPlayer as HumanPlayer
 from othello.keras.NNet import NNetWrapper as NNet
 
+#from tictactoe.TicTacToeGame import TicTacToeGame as Game
+#from tictactoe.TicTacToeGame import display
+#from tictactoe.TicTacToePlayers import RandomPlayer
+#from tictactoe.TicTacToePlayers import HumanTicTacToePlayer as HumanPlayer
+#from tictactoe.keras.NNet import NNetWrapper as NNet
+
 import numpy as np
 from utils import *
 
-MODEL_FOLDER = './pretrained_models/'
+MODEL_FOLDER = './pretrained_models/othello/'
 MODEL_NAME = 'padawan0.network'
 """
 use this script to play any two agents against each other, or play manually with

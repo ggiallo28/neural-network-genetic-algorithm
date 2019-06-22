@@ -5,12 +5,10 @@ import numpy as np
 import time, os, sys
 from pickle import Pickler, Unpickler
 from random import shuffle
-
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures as futures
 import time
 import multiprocessing
-import copy
 
 class Coach():
     """
@@ -49,10 +47,7 @@ class Coach():
             canonicalBoard = self.game.getCanonicalForm(board,curPlayer)
             temp = int(episodeStep < self.args.tempThreshold)
 
-            start = time.time()
             pi = mcts.getActionProb(canonicalBoard, temp=temp)
-            end = time.time()
-            print("mtcs time:", end - start)
             sym = self.game.getSymmetries(canonicalBoard, pi)
 
             for b,p in sym:
@@ -115,8 +110,7 @@ class Coach():
     def saveTrainExamples(self, folder, filename):
         if not os.path.exists(folder):
             os.makedirs(folder)
-        path = os.path.join(folder, filename)
-        with open(path, "wb+") as f:
+        with open(folder+filename, "wb+") as f:
             Pickler(f).dump(self.trainExamplesHistory)
         f.closed
 
@@ -132,4 +126,4 @@ class Coach():
                 self.trainExamplesHistory = Unpickler(f).load()
             f.closed
             # examples based on the model were already collected (loaded)
-            self.skipFirstSelfPlay = False
+            self.skipFirstSelfPlay = True

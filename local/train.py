@@ -1,8 +1,8 @@
 from Coach import Coach
 from tictactoe.TicTacToeGame import TicTacToeGame as Game
 from tictactoe.keras.NNet import NNetWrapper as nn
-#from othello.OthelloGame import OthelloGame as Game
-#from othello.keras.NNet import NNetWrapper as nn
+from othello.OthelloGame import OthelloGame as Game
+from othello.keras.NNet import NNetWrapper as nn
 #from othello.tensorflow.NNet import NNetWrapper as nn # ResNet
 #from othello.pytorch.NNet import NNetWrapper as nn
 #from othello.chainer.NNet import NNetWrapper as nn
@@ -20,7 +20,7 @@ args = dotdict({
     'arenaCompare': 10,
     'cpuct': 1,
 
-    'model_path': './pretrained_models/',
+    'model_path': './pretrained_models/othello/',
     'load_model': False,
     'load_examples': False,
     'numItersForTrainExamplesHistory': 20,

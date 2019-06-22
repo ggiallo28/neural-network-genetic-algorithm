@@ -10,7 +10,6 @@ from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures as futures
 import time
 
-
 class Coach():
     """
     This class executes the self-play + learning. It uses the functions defined

@@ -83,10 +83,11 @@ class NNetWrapper(NeuralNet):
         self.nnet.model.load_weights(filepath)
 
     def get_weights(self):
-        return self.nnet.model.get_weights()
+        return np.array(self.nnet.model.get_weights())
 
     def set_weights(self, weights):
         self.nnet.model.set_weights(weights)
+        return self
 
     def get_loss(self):
         return self.loss

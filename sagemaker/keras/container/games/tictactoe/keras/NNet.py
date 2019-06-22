@@ -64,7 +64,6 @@ class NNetWrapper(NeuralNet):
         board: np array with board
         """
         # timing
-        start = time.time()
 
         # preparing input
         board = board[np.newaxis, :, :]
@@ -74,9 +73,6 @@ class NNetWrapper(NeuralNet):
             with self.nnet.graph.as_default():
                 pi, v = self.nnet.model.predict(board)
 
-        end = time.time()
-        print("predict time:", end - start)
-        #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return pi[0], v[0]
 
     def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
@@ -96,10 +92,11 @@ class NNetWrapper(NeuralNet):
         self.nnet.model.load_weights(filepath)
 
     def get_weights(self):
-        return self.nnet.model.get_weights()
+        return np.array(self.nnet.model.get_weights())
 
     def set_weights(self, weights):
         self.nnet.model.set_weights(weights)
+        return self
 
     def get_loss(self):
         return self.loss
