@@ -1,5 +1,7 @@
 pretrained_models/
 *.DS_Store
+sagemaker/keras/container/.serverless/*
+sagemaker/keras/container/node_modules/*
 sagemaker/keras/reinf/__pycache__/*
 sagemaker/keras/reinf/games/__pycache__/*
 sagemaker/keras/reinf/games/othello/__pycache__/*

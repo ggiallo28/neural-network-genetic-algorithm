@@ -13,23 +13,24 @@ from NeuralNet import NeuralNet
 import argparse
 from .OthelloNNet import OthelloNNet as onnet
 
-args = dotdict({
-    'lr': 0.001,
-    'dropout': 0.3,
-    'epochs': 3,
-    'batch_size': 64,
-    'cuda': False,
-    'num_channels': 512,
-})
+#args = dotdict({
+#    'lr': 0.001,
+#    'dropout': 0.3,
+#    'epochs': 3,
+#    'batch_size': 64,
+#    'cuda': False,
+#    'num_channels': 512,
+#})
 
 class NNetWrapper(NeuralNet):
-    def __init__(self, game):
+    def __init__(self, game, args):
         self.nnet = onnet(game, args)
         self.game = game
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
         self.name = str(hex(id(self)))
         self.loss = 99999999999
+        self.args = args
 
     def train(self, examples):
         """
@@ -40,7 +41,7 @@ class NNetWrapper(NeuralNet):
         input_boards = np.asarray(input_boards)
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
-        train_history = self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs, verbose=0)
+        train_history = self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = self.args.batch_size, epochs = self.args.epochs, verbose=0)
         self.loss = train_history.history['loss']
 
         v0 = len(examples)

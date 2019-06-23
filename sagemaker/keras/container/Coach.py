@@ -79,11 +79,11 @@ class Coach():
                 executor = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
                 for eps in range(self.args.numEps):
                     mcts = MCTS(self.game, nnet, self.args)
-                    self.iterationTrainExamples += self.executeEpisode(mcts)
-                    #futurelist.append(executor.submit(self.executeEpisode, mcts))
+                    #self.iterationTrainExamples += self.executeEpisode(mcts)
+                    futurelist.append(executor.submit(self.executeEpisode, mcts))
 
-                #for eps in range(self.args.numEps):
-                #    self.iterationTrainExamples += futurelist[eps].result()
+                for eps in range(self.args.numEps):
+                    self.iterationTrainExamples += futurelist[eps].result()
 
                 total = round(time.time()-end,2)
                 print('Generate Train Examples in {} Eps Time: {}s | Total: {}s'.format(self.args.numEps, round(total/self.args.numEps,3), total))

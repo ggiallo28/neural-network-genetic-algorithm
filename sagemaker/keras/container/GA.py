@@ -52,7 +52,7 @@ def select_mating_pool(pop, fitness, num_parents):
     nnet_parents = numpy.array(parents)
     return nnet_parents, indices
 
-def crossover(parents, offspring_size, nn):
+def crossover(parents, offspring_size, nn, args):
     babies = [0]*offspring_size
     game = parents[0].game
 
@@ -70,7 +70,7 @@ def crossover(parents, offspring_size, nn):
         onesm = np.ones(male.shape)
         alpha = np.random.uniform(0,1,female.shape)
         # The new offspring will take genes from both parents
-        babies[k] = nn(game).set_weights((onesm-alpha)*male + alpha*female)
+        babies[k] = nn(game, args).set_weights((onesm-alpha)*male + alpha*female)
         print('Mating Crossover. Baby:',babies[k].name,'= Male:',parents[male_idx].name,'& Female:',parents[female_idx].name)
 
     return babies
