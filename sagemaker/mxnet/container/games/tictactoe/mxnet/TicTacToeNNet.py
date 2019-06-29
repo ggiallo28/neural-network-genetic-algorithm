@@ -103,7 +103,7 @@ class TicTacToeResNNet():
         self.args = args
 
         # Neural Net
-        self.model = nn.Sequential()
+        self.model = nn.HybridSequential()
         self.model.add(nn.Conv2D(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
         self.model.add(nn.BatchNorm(axis=3))
         self.model.add(nn.Activation('relu'))
