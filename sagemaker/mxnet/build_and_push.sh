@@ -13,8 +13,8 @@ then
     exit 1
 fi
 
-chmod +x reinf/train
-chmod +x reinf/serve
+chmod +x container/train
+chmod +x container/play
 
 # Get the account number associated with the current IAM credentials
 account=$(aws sts get-caller-identity --query Account --output text)

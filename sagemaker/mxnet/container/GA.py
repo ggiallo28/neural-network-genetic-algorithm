@@ -1,15 +1,14 @@
 import numpy
-
 from Arena import Arena
 from MCTS import MCTS
 
-from mxnet import nd
 from collections import deque
 import time, os, sys
 from pickle import Pickler, Unpickler
 from random import shuffle, randint
 import random
 import copy
+from mxnet import nd
 
 def cal_pop_fitness(pop, args):
     # Calculating the fitness value of each solution in the current population.

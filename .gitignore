@@ -17,3 +17,6 @@ sagemaker/mxnet/reinf/games/othello/__pycache__/*
 sagemaker/mxnet/reinf/games/othello/mxnet/__pycache__/*
 sagemaker/mxnet/reinf/games/tictactoe/__pycache__/*
 sagemaker/mxnet/reinf/games/tictactoe/mxnet/__pycache__/*
+sagemaker/mxnet/container/node_modules/*
+sagemaker/mxnet/container/.serverless/*
+sagemaker/keras/container/trained_model/*

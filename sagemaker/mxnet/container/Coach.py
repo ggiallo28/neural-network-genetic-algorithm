@@ -4,13 +4,11 @@ from MCTS import MCTS
 import time, os, sys
 from pickle import Pickler, Unpickler
 from random import shuffle
-
-from mxnet import nd
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures as futures
 import time
 import multiprocessing
-import copy
+from mxnet import nd
 
 class Coach():
     """

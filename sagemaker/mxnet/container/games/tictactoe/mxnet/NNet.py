@@ -1,6 +1,4 @@
 import sys, os, time
-import argparse
-import shutil
 import random
 import math
 sys.path.append('..')
@@ -8,8 +6,7 @@ from utils import *
 from NeuralNet import NeuralNet
 
 import mxnet as mx
-from mxnet import nd, gpu, gluon, init, autograd
-import argparse
+from mxnet import gpu, gluon, init, autograd
 from .TicTacToeResNNet import TicTacToeNNet as onnet
 
 args = dotdict({

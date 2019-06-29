@@ -1,15 +1,5 @@
-FROM jihong/keras-gpu:latest
-
-RUN pip install futures flask gevent gunicorn
-
-ENV PYTHONUNBUFFERED=TRUE
-ENV PYTHONDONTWRITEBYTECODE=TRUE
-ENV PATH="/opt/program:${PATH}"
-
-# Install Python packages and keras
-ENV NB_USER keras
-ENV NB_UID 1000
+FROM mxnet/python:gpu
 
 # Set up the program in the image
-COPY reinf /opt/program
+COPY container /opt/program
 WORKDIR /opt/program

@@ -29,11 +29,11 @@ if os.path.isfile(param_path):
 
 args = dotdict({
     'numIters': 2,
-    'numEps': 20,
+    'numEps': 5, #20
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
-    'numMCTSSims': 25,
+    'numMCTSSims': 15, #25
     'arenaCompare': 4,
     'cpuct': 1,
 
@@ -50,8 +50,8 @@ def train():
         Mating pool size
         Population size
     """
-    sol_per_pop = 6
-    num_parents = 3
+    sol_per_pop = 3
+    num_parents = 2
     num_generations = 20
 
     """
