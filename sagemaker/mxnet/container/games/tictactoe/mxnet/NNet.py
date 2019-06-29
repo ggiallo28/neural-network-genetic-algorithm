@@ -12,12 +12,13 @@ from .TicTacToeNNet import TicTacToeResNNet as onnet
 class NNetWrapper(NeuralNet):
     def __init__(self, game, args):
         self.nnet = onnet(game, args)
+        self.args = args
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
         self.name = str(hex(id(self)))
         self.loss = 99999999999
         self.game = game
-        self.ctx = mx.gpu() if args.cuda else mx.cpu()
+        self.ctx = mx.gpu() if self.args.cuda else mx.cpu()
 
     def train(self, train_data):
         """
@@ -27,9 +28,9 @@ class NNetWrapper(NeuralNet):
         end = time.time()
         input_boards, target_pis, target_vs = list(zip(*train_data))
         dataset_train = gluon.data.dataset.ArrayDataset(input_boards, target_pis, target_vs)
-        data_loader = gluon.data.DataLoader(dataset_train,batch_size=args.batch_size,shuffle=True,num_workers=4)
+        data_loader = gluon.data.DataLoader(dataset_train,batch_size=self.args.batch_size,shuffle=True,num_workers=4)
 
-        for epoch in range(args.epochs):
+        for epoch in range(self.args.epochs):
             for input_board, target_pi, target_v in data_loader:
                 input_board = input_board.as_in_context(ctx)
                 target_pi = target_pi.as_in_context(ctx)
@@ -40,7 +41,7 @@ class NNetWrapper(NeuralNet):
                     self.v_loss = self.nnet.v_loss(v,target_v)
                     self.loss = self.pi_loss + self.v_loss
                 self.loss.backward()
-                self.nnet.trainer.step(args.epochs)
+                self.nnet.trainer.step(self.args.epochs)
 
         v0 = len(train_data)
         v1 = round(time.time()-end,2)
