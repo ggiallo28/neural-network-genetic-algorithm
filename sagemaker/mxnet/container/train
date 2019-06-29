@@ -21,10 +21,10 @@ with open(param_path, 'r') as tc:
 
 if args['game'] == 'tictactoe':
     from games.tictactoe.TicTacToeGame import TicTacToeGame as Game
-    from games.tictactoe.keras.NNet import NNetWrapper as nn
+    from games.tictactoe.mxnet.NNet import NNetWrapper as nn
 if args['game'] == 'othello':
     from games.othello.OthelloGame import OthelloGame as Game
-    from games.othello.keras.NNet import NNetWrapper as nn
+    from games.othello.mxnet.NNet import NNetWrapper as nn
 
 args['input_path'] = str(input_path)+'/train'
 args['cuda'] = True
