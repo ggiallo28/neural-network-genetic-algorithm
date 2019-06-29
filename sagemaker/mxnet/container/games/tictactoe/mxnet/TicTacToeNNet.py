@@ -79,7 +79,7 @@ class TicTacToeNNet():
 
 class Residual(Block):
     def __init__(self, channels, kernel_size, padding=(1, 1), **kwargs):
-        super(DDense, self).__init__(**kwargs)
+        super(Residual, self).__init__(**kwargs)
         with self.name_scope():
             self.residual = nn.Sequential()
             self.residual.add(nn.Conv2D(channels=channels, kernel_size=kernel_size, padding=(1, 1)))
