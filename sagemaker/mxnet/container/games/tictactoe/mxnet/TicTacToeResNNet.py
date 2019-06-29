@@ -47,7 +47,7 @@ class TicTacToeNNet():
 
         self.model.add(DDense(self.action_size))
 
-        self.model.initialize(init=init.Xavier(), force_reinit=True)
+        self.model.initialize(init=init.Xavier(), force_reinit=True, ctx = self.ctx)
         self.model.hybridize()
         self.model(nd.random.uniform(shape=(args.batch_size,1,self.board_x,self.board_y)))
 
