@@ -14,7 +14,7 @@ then
 fi
 
 chmod +x container/train
-chmod +x container/play
+chmod +x container/play.py
 
 # Get the account number associated with the current IAM credentials
 account=$(aws sts get-caller-identity --query Account --output text)
