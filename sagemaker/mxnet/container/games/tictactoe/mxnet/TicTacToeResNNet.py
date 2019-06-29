@@ -49,7 +49,7 @@ class TicTacToeNNet():
 
         self.model.initialize(init=init.Xavier(), force_reinit=True, ctx = self.ctx)
         self.model.hybridize()
-        self.model(nd.random.uniform(shape=(args.batch_size,1,self.board_x,self.board_y)))
+        self.model(nd.random.uniform(shape=(args.batch_size,1,self.board_x,self.board_y), ctx = self.ctx))
 
         self.v_loss = gluon.loss.L2Loss()
         self.pi_loss = gluon.loss.SoftmaxCrossEntropyLoss(sparse_label=False)
