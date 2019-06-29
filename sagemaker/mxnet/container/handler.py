@@ -6,6 +6,15 @@ from games.tictactoe.keras.NNet import NNetWrapper as NNet
 from utils import *
 import numpy as np
 
+args = dotdict({
+    'lr': 0.001,
+    'dropout': 0.3,
+    'epochs': 1,
+    'batch_size': 64,
+    'cuda': False,
+    'num_channels': 512,
+})
+
 MODEL_FOLDER = './trained_model/'
 MODEL_NAME = 'padawan0.network'
 BOARD_SIZE = 3
@@ -15,7 +24,7 @@ ARGS = dotdict({
     })
 
 game = Game(BOARD_SIZE)
-neural_network = NNet(game)
+neural_network = NNet(game, args)
 neural_network.load_checkpoint(MODEL_FOLDER,MODEL_NAME)
 mcts = MCTS(game, neural_network, ARGS)
 
