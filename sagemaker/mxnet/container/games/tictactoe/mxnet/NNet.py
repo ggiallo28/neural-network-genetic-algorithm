@@ -17,11 +17,7 @@ class NNetWrapper(NeuralNet):
         self.name = str(hex(id(self)))
         self.loss = 99999999999
         self.game = game
-        if args.cuda:
-            self.ctx = mx.gpu()
-            mx.ctx.default(ctx)
-        else:
-            self.ctx = mx.cpu()
+        self.ctx = mx.gpu() if args.cuda else mx.cpu()
 
     def train(self, train_data):
         """
