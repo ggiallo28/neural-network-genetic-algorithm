@@ -1,48 +1,55 @@
 #!/usr/bin/env python
 
 from Coach import Coach
-from games.othello.OthelloGame import OthelloGame as Game
-from games.othello.mxnet.NNet import NNetWrapper as nn
-#from games.tictactoe.TicTacToeGame import TicTacToeGame as Game
-#from games.tictactoe.mxnet.NNet import NNetWrapper as nn
 from utils import *
 import numpy
 import GA
-from random import shuffle
-import math
 import os
-
-train_examples_file_name = "checkpoint.examples"
-
-# These are the paths to where SageMaker mounts interesting things in your container.
+import json
+import tarfile
 
 prefix = '/opt/ml/'
-channel_name='training'
+
+input_path = prefix + 'input/data'
+output_path = os.path.join(prefix, 'output')
 model_path = os.path.join(prefix, 'model')
-param_path = os.path.join(prefix, 'io/config/hyperparameters.json')
-input_path = output_path = os.path.join(prefix + 'io/data', channel_name)
+param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
 
 # Read in any hyperparameters that the user passed with the training job
-if os.path.isfile(param_path):
-    with open(param_path, 'r') as tc:
-        args = dotdict(json.load(tc))
+with open(param_path, 'r') as tc:
+    args = dotdict(json.load(tc))
 
-args = dotdict({
-    'numIters': 2,
-    'numEps': 5, #20
-    'tempThreshold': 15,
-    'updateThreshold': 0.6,
-    'maxlenOfQueue': 200000,
-    'numMCTSSims': 15, #25
-    'arenaCompare': 4,
-    'cpuct': 1,
+if args['game'] == 'tictactoe':
+    from games.tictactoe.TicTacToeGame import TicTacToeGame as Game
+    from games.tictactoe.keras.NNet import NNetWrapper as nn
+if args['game'] == 'othello':
+    from games.othello.OthelloGame import OthelloGame as Game
+    from games.othello.keras.NNet import NNetWrapper as nn
 
-    'checkpoint': './temp/',
-    'load_model': False,
-    'load_folder_file': ('/dev/models/8x100x50','best.pth.tar'),
-    'numItersForTrainExamplesHistory': 7,
-})
+args['input_path'] = str(input_path)+'/train'
+args['cuda'] = True
+args['numIters'] = int(args['numIters'])
+args['numEps'] = int(args['numEps'])
+args['tempThreshold'] = int(args['tempThreshold'])
+args['updateThreshold'] = float(args['updateThreshold'])
+args['maxlenOfQueue'] = int(args['maxlenOfQueue'])
+args['numMCTSSims'] = int(args['numMCTSSims'])
+args['arenaCompare'] = int(args['arenaCompare'])
+args['cpuct'] = int(args['cpuct'])
+args['load_model'] = args['load_model'].lower() == 'true'
+args['load_examples'] = args['load_examples'].lower() == 'true'
+args['numItersForTrainExamplesHistory'] = int(args['numItersForTrainExamplesHistory'])
+args['lr'] = float(args['lr'])
+args['dropout'] = float(args['dropout'])
+args['epochs'] = int(args['epochs'])
+args['batch_size'] = int(args['batch_size'])
 
+print(os.listdir(args['input_path']))
+
+if args['load_model'] or args['load_examples']:
+    tar = tarfile.open(args['input_path']+'/model.tar.gz', "r:gz")
+    tar.extractall()
+    tar.close()
 
 def train():
     """
@@ -50,42 +57,25 @@ def train():
         Mating pool size
         Population size
     """
-    sol_per_pop = 3
-    num_parents = 2
-    num_generations = 20
-
-    """
-    Creating the initial population.
-        Generate population from scratch if there is no checkpoint,
-        or load population from file.
-    """
-    #
-    input_model_files = [ [model_path, file] for file in os.listdir(model_path) ]
-    input_model_files.sort()
-    new_population = []
-    game = Game()
-    if len(input_model_files) == 0 or not args.load_model:
-        for i in range(0,sol_per_pop):
-            new_population.append(nn(game))
-    else:
-        print("Checkpoint File found. Read it.")
-        sol_per_pop = len(input_model_files)
-        for load_model_file in input_model_files:
-            print(os.path.join(load_model_file[0], load_model_file[1]))
-            nnet = nn(game)
-            nnet.load_checkpoint(load_model_file[0], load_model_file[1])
-            new_population.append(nnet)
-
-    """
-    Creating Coach class used to generate Training Example
-        Load Train Example History if exist
-    """
-    master = Coach(Game(), args)
-    examples_file_path = os.path.join(input_path, train_examples_file_name)
-    if os.path.isfile(examples_file_path) :
-        print(os.path.join(examples_file_path))
-        master.loadTrainExamples(examples_file_path)
+    sol_per_pop = int(args['sol_per_pop'])
+    num_parents = int(args['num_parents'])
+    num_generations = int(args['num_generations'])
     alpha_index = 0
+
+    # Creating the environment.
+    game = Game()
+    master = Coach(game, args)
+
+
+    # Creating the initial population.
+    new_population = numpy.array([nn(game, args) for i in range(0,sol_per_pop)])
+
+    if args['load_model']:
+        for i,p in enumerate(new_population):
+            p.load_checkpoint(args['input_path'], 'padawan{}.network'.format(i))
+    if args['load_examples']:
+        master.loadTrainExamples('{}/train.examples'.format(args['input_path']))
+
     """
     Start Genetic Algorithm
     """
@@ -105,7 +95,7 @@ def train():
         parents, indices = GA.select_mating_pool(new_population, fitness, num_parents)
 
         # Generating next generation using crossover.
-        offspring_crossover = GA.crossover(parents, sol_per_pop-num_parents, nn)
+        offspring_crossover = GA.crossover(parents, sol_per_pop-num_parents, nn, args)
 
         # Adding some variations to the offsrping using mutation.
         offspring_mutation = GA.mutation(offspring_crossover)

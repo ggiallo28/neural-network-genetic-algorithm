@@ -50,24 +50,24 @@ def select_mating_pool(pop, fitness, num_parents):
 
     return parents, indices
 
-def cross(male, female, nn):
+def cross(male, female, nn, args):
     pdict_male = male.nnet.model.collect_params()
     pdict_female = female.nnet.model.collect_params()
 
-    baby = nn(female.game)
-    pdict_baby = baby.nnet.model.collect_params()
+    baby = nn(female.game, args)
+    pdict_baby = baby.nnet.model.collect_params().as_in_context(baby.ctx)
 
     for m,f,b in zip(pdict_male.keys(),pdict_female.keys(),pdict_baby.keys()):
-        male_data = pdict_male[m].data()
-        female_data = pdict_female[f].data()
-        onesm = nd.ones(male_data.shape)
-        alpha = nd.random.uniform(shape=female_data.shape)
+        male_data = pdict_male[m].data().as_in_context(male.ctx)
+        female_data = pdict_female[f].data().as_in_context(female.ctx)
+        onesm = nd.ones(shape=male_data.shape, ctx=male.ctx)
+        alpha = nd.random.uniform(shape=female_data.shape, ctx=female.ctx)
         pdict_baby[b].set_data((onesm-alpha)*male_data + alpha*female_data)
 
     print('Mating Crossover. Baby:',baby.name,'= Male:',male.name,'& Female:',female.name)
     return baby
 
-def crossover(parents, offspring_size, nn):
+def crossover(parents, offspring_size, nn, args):
     babies = [0]*offspring_size
 
     mating_arena = list(range(offspring_size))
@@ -82,7 +82,7 @@ def crossover(parents, offspring_size, nn):
         female = parents[female_idx]
 
         # The new offspring will take genes from both parents
-        babies[k] = cross(male, female, nn)
+        babies[k] = cross(male, female, nn, args)
 
     return babies
 
@@ -91,10 +91,10 @@ def mutate(baby, mutation_propability, multiplier=0.10):
     pdict_baby = baby.nnet.model.collect_params()
 
     for k in pdict_baby.keys():
-        baby_data = pdict_baby[k].data()
+        baby_data = pdict_baby[k].data().as_in_context(baby.ctx)
 
-        neg = nd.array(numpy.random.binomial(1, mutation_propability, baby_data.shape))
-        pos = nd.array(numpy.random.binomial(1, mutation_propability, baby_data.shape))
+        neg = nd.array(numpy.random.binomial(1, mutation_propability, baby_data.shape), baby.ctx)
+        pos = nd.array(numpy.random.binomial(1, mutation_propability, baby_data.shape), baby.ctx)
 
         pdict_baby[k].set_data(baby_data + (pos-neg)*baby_data*multiplier)
     return baby

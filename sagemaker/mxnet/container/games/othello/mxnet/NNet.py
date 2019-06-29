@@ -12,29 +12,19 @@ from mxnet import nd, gpu, gluon, init, autograd
 import argparse
 from .OthelloNNet import OthelloNNet as onnet
 
-args = dotdict({
-    'lr': 0.001,
-    'dropout': 0.3,
-    'epochs': 3,
-    'batch_size': 64,
-    'cuda': False,
-    'num_channels': 512,
-})
-
-if args.cuda:
-    ctx = mx.gpu()
-    mx.ctx.default(ctx)
-else:
-    ctx = mx.cpu()
-
 class NNetWrapper(NeuralNet):
-    def __init__(self, game):
+    def __init__(self, game, args):
         self.nnet = onnet(game, args)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
         self.name = str(hex(id(self)))
         self.loss = 99999999999
         self.game = game
+        if args.cuda:
+            self.ctx = mx.gpu()
+            mx.ctx.default(ctx)
+        else:
+            self.ctx = mx.cpu()
 
     def train(self, train_data):
         """

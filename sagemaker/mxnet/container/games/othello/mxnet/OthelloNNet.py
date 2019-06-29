@@ -25,11 +25,7 @@ class OthelloNNet():
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
         self.args = args
-
-        if args.cuda:
-            self.ctx = mx.gpu()
-        else:
-            self.ctx = mx.cpu()
+        self.ctx = mx.gpu() if args['cuda'] else mx.cpu()
 
         resnet18_v2 = vision.resnet18_v2()
         self.model = nn.HybridSequential()
@@ -52,12 +48,13 @@ class OthelloNNet():
 
         self.model.initialize(init=init.Xavier(), force_reinit=True)
         self.model.hybridize()
-        self.model(nd.random.uniform(shape=(args.batch_size,1,self.board_x,self.board_y)))
+        self.model(nd.random.uniform(shape=(args.batch_size,1,self.board_x,self.board_y), ctx=mx.cpu()))
 
         self.v_loss = gluon.loss.L2Loss()
         self.pi_loss = gluon.loss.SoftmaxCrossEntropyLoss(sparse_label=False)
         self.trainer = gluon.Trainer(self.model.collect_params(),'adam',{'learning_rate': args.lr})
 
     def predict(self,x):
+        x = x.as_in_context(self.ctx)
         p,v = self.model(x)
         return p,v
