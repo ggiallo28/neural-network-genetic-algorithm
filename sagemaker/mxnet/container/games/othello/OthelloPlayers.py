@@ -1,4 +1,5 @@
 import numpy as np
+from mxnet import nd
 
 
 class RandomPlayer():
@@ -33,7 +34,7 @@ class HumanOthelloPlayer():
             else:
                 print('Invalid')
 
-        return a
+        return nd.array([a])
 
 
 class GreedyOthelloPlayer():

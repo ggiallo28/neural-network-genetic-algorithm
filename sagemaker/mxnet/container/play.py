@@ -1,11 +1,23 @@
 import Arena
 from MCTS import MCTS
-from games.tictactoe.TicTacToeGame import TicTacToeGame as Game
-from games.tictactoe.TicTacToeGame import display
-from games.tictactoe.TicTacToePlayers import RandomPlayer
-#from games.tictactoe.TicTacToePlayers import GreedyTicTacToePlayer as GreedyPlayer
-from games.tictactoe.TicTacToePlayers import HumanTicTacToePlayer as HumanPlayer
-from games.tictactoe.mxnet.NNet import NNetWrapper as NNet
+
+GAME = 'othello'
+
+if GAME == 'tictactoe':
+    from games.tictactoe.TicTacToeGame import TicTacToeGame as Game
+    from games.tictactoe.TicTacToeGame import display
+    from games.tictactoe.TicTacToePlayers import RandomPlayer
+    from games.tictactoe.TicTacToePlayers import HumanTicTacToePlayer as HumanPlayer
+    from games.tictactoe.mxnet.NNet import NNetWrapper as NNet
+    g = Game(3)
+
+if GAME == 'othello':
+    from games.othello.OthelloGame import OthelloGame as Game
+    from games.othello.OthelloGame import display
+    from games.othello.OthelloPlayers import RandomPlayer
+    from games.othello.OthelloPlayers import HumanOthelloPlayer as HumanPlayer
+    from games.othello.mxnet.NNet import NNetWrapper as NNet
+    g = Game(8)
 
 from mxnet import nd
 from utils import *
@@ -16,8 +28,6 @@ MODEL_NAME = 'alpha.network'
 use this script to play any two agents against each other, or play manually with
 any agent.
 """
-
-g = Game(3)
 
 # all players
 rp = RandomPlayer(g).play
