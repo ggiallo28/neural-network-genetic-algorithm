@@ -7,7 +7,7 @@ from NeuralNet import NeuralNet
 
 import mxnet as mx
 from mxnet import gpu, gluon, init, autograd
-from .TicTacToeResNNet import TicTacToeNNet as onnet
+from .TicTacToeNNet import TicTacToeResNNet as onnet
 
 args = dotdict({
     'lr': 0.001,

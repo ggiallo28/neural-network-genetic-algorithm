@@ -19,6 +19,7 @@ class DDense(HybridBlock):
         v = self.v(x)
         return [pi,v]
 
+
 class TicTacToeNNet():
     def __init__(self, game, args):
         # game params
