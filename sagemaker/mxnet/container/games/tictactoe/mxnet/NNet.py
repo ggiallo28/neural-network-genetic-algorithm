@@ -7,7 +7,7 @@ from NeuralNet import NeuralNet
 
 import mxnet as mx
 from mxnet import gpu, gluon, init, autograd
-from .TicTacToeNNet import TicTacToeResNNet as onnet
+from .TicTacToeResNNet import TicTacToeNNet as onnet
 
 class NNetWrapper(NeuralNet):
     def __init__(self, game, args):

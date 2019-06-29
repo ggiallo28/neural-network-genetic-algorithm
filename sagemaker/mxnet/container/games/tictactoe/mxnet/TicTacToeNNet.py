@@ -74,6 +74,7 @@ class TicTacToeNNet():
         self.trainer = gluon.Trainer(self.model.collect_params(),'adam',{'learning_rate': args.lr})
 
     def predict(self,x):
+        x = x.as_in_context(self.ctx)
         p,v = self.model(x)
         return p,v
 
@@ -81,7 +82,7 @@ class Residual(Block):
     def __init__(self, channels, kernel_size, padding=(1, 1), **kwargs):
         super(Residual, self).__init__(**kwargs)
         with self.name_scope():
-            self.residual = nn.HybridSequential()
+            self.residual = nn.Sequential()
             self.residual.add(nn.Conv2D(channels=channels, kernel_size=kernel_size, padding=(1, 1)))
             self.residual.add(nn.BatchNorm(axis=3))
             self.residual.add(nn.Activation('relu'))
@@ -103,38 +104,34 @@ class TicTacToeResNNet():
         self.args = args
 
         # Neural Net
-        resnet18_v2 = vision.resnet18_v2()
-        self.model = nn.HybridSequential()
-        self.model.add(nn.Conv2D(channels=3, kernel_size=1))
-        for layer in resnet18_v2.features[:9]:
-            self.model.add(layer)
+        self.model = nn.Sequential()
+        self.model.add(nn.Conv2D(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(nn.BatchNorm(axis=3))
+        self.model.add(nn.Activation('relu'))
 
-        #self.model = nn.Sequential()
-        #self.model.add(nn.Conv2D(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(nn.BatchNorm(axis=3))
-        #self.model.add(nn.Activation('relu'))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(nn.Conv2D(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
-        #self.model.add(nn.BatchNorm(axis=3))
-        #self.model.add(nn.Activation('relu'))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(Residual(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+
+        self.model.add(nn.Conv2D(channels=args.num_channels, kernel_size=3, padding=(1, 1)))
+        self.model.add(nn.BatchNorm(axis=3))
+        self.model.add(nn.Activation('relu'))
 
         self.model.add(nn.Flatten())
 
