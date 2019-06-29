@@ -21,12 +21,13 @@ class Board():
     # list of all 8 directions on the board, as (x,y) offsets
     #__directions = [(1,1),(1,0),(1,-1),(0,-1),(-1,-1),(-1,0),(-1,1),(0,1)]
 
-    def __init__(self, n=3):
+    def __init__(self, n=3, cuda=True):
         "Set up initial board configuration."
 
         self.n = n
+        self.ctx = nd.gpu() if cuda else nd.cpu()
         # Create the empty board array.
-        self.pieces = nd.zeros((1,1,self.n,self.n))
+        self.pieces = nd.zeros((1,1,self.n,self.n), ctx=self.ctx)
 
     # add [][] indexer syntax to the Board
     def __getitem__(self, index):

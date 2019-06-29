@@ -15,8 +15,9 @@ Date: Jan 5, 2018.
 Based on the OthelloGame by Surag Nair.
 """
 class TicTacToeGame(Game):
-    def __init__(self, n=3):
+    def __init__(self, n=3, cuda=True):
         self.n = n
+        self.ctx = nd.gpu() if cuda else nd.cpu()
 
     def getInitBoard(self):
         # return initial board (numpy board)
@@ -44,7 +45,7 @@ class TicTacToeGame(Game):
 
     def getValidMoves(self, board, player):
         # return a fixed size binary vector
-        valids = nd.zeros((self.getActionSize(),))
+        valids = nd.zeros((self.getActionSize(),), ctx=self.ctx)
         b = Board(self.n)
         b.pieces = board.copy()
         legalMoves =  b.get_legal_moves(player)
