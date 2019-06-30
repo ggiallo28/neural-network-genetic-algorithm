@@ -23,7 +23,7 @@ ARGS = dotdict({
         'cpuct':1.0
     })
 
-game = Game(BOARD_SIZE)
+game = Game(BOARD_SIZE, False)
 neural_network = NNet(game, args)
 neural_network.load_checkpoint(MODEL_FOLDER,MODEL_NAME)
 mcts = MCTS(game, neural_network, ARGS)

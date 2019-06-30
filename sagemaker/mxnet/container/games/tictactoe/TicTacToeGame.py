@@ -4,6 +4,7 @@ sys.path.append('..')
 from Game import Game
 from .TicTacToeLogic import Board
 from mxnet import nd
+import mxnet as mx
 
 """
 Game class implementation for the game of TicTacToe.
@@ -17,11 +18,12 @@ Based on the OthelloGame by Surag Nair.
 class TicTacToeGame(Game):
     def __init__(self, n=3, cuda=True):
         self.n = n
-        self.ctx = nd.gpu() if cuda else nd.cpu()
+        self.cuda = cuda
+        self.ctx = mx.gpu() if cuda else mx.cpu()
 
     def getInitBoard(self):
         # return initial board (numpy board)
-        b = Board(self.n)
+        b = Board(self.n, self.cuda)
         return b.pieces
 
     def getBoardSize(self):
@@ -37,7 +39,7 @@ class TicTacToeGame(Game):
         # action must be a valid move
         if action == self.n*self.n:
             return (board, -player)
-        b = Board(self.n)
+        b = Board(self.n, self.cuda)
         b.pieces = board.copy()
         move = (int(action/self.n), action%self.n)
         b.execute_move(move, player)
@@ -46,7 +48,7 @@ class TicTacToeGame(Game):
     def getValidMoves(self, board, player):
         # return a fixed size binary vector
         valids = nd.zeros((self.getActionSize(),), ctx=self.ctx)
-        b = Board(self.n)
+        b = Board(self.n, self.cuda)
         b.pieces = board.copy()
         legalMoves =  b.get_legal_moves(player)
         if len(legalMoves)==0:
@@ -59,7 +61,7 @@ class TicTacToeGame(Game):
     def getGameEnded(self, board, player):
         # return 0 if not ended, 1 if player 1 won, -1 if player 1 lost
         # player = 1
-        b = Board(self.n)
+        b = Board(self.n, self.cuda)
         b.pieces = board.copy()
 
         if b.is_win(player):
