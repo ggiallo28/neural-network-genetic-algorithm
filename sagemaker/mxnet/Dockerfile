@@ -16,10 +16,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     rm -rf /var/lib/apt/lists/*
 RUN cd /tmp && \
     curl -O https://bootstrap.pypa.io/get-pip.py && \
-    python get-pip.py && rm get-pip.py 
+    python get-pip.py && rm get-pip.py
 RUN rm /usr/local/bin/pip && ln -s /usr/local/bin/pip3 /usr/local/bin/pip
 RUN apt-get remove curl -y && /tmp/clean-layer.sh
-RUN pip install mxnet-cu101mkl && /tmp/clean-layer.sh
+RUN pip install mxnet-cu101 && /tmp/clean-layer.sh
 
 # Set up the program in the image
 COPY container /opt/program
@@ -28,5 +28,4 @@ WORKDIR /opt/program
 
 
 
-        
-        
+
