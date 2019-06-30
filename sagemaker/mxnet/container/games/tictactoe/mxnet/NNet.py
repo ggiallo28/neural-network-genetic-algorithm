@@ -8,6 +8,7 @@ from NeuralNet import NeuralNet
 import mxnet as mx
 from mxnet import gpu, gluon, init, autograd
 from .TicTacToeResNNet import TicTacToeNNet as onnet
+import multiprocessing
 
 class NNetWrapper(NeuralNet):
     def __init__(self, game, args):
@@ -28,7 +29,7 @@ class NNetWrapper(NeuralNet):
         end = time.time()
         input_boards, target_pis, target_vs = list(zip(*train_data))
         dataset_train = gluon.data.dataset.ArrayDataset(input_boards, target_pis, target_vs)
-        data_loader = gluon.data.DataLoader(dataset_train,batch_size=self.args.batch_size,shuffle=True,num_workers=4)
+        data_loader = gluon.data.DataLoader(dataset_train,batch_size=self.args.batch_size,shuffle=True,num_workers=multiprocessing.cpu_count())
 
         for epoch in range(self.args.epochs):
             for input_board, target_pi, target_v in data_loader:
