@@ -1,4 +1,5 @@
 from mxnet import nd
+import mxnet as mx
 '''
 Board class for the game of TicTacToe.
 Default board size is 3x3.
@@ -25,7 +26,7 @@ class Board():
         "Set up initial board configuration."
 
         self.n = n
-        self.ctx = nd.gpu() if cuda else nd.cpu()
+        self.ctx = mx.gpu() if cuda else mx.cpu()
         # Create the empty board array.
         self.pieces = nd.zeros((1,1,self.n,self.n), ctx=self.ctx)
 

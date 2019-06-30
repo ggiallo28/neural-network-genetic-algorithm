@@ -6,21 +6,18 @@ from games.tictactoe.mxnet.NNet import NNetWrapper as NNet
 from utils import *
 import numpy as np
 
-args = dotdict({
-    'lr': 0.001,
-    'dropout': 0.3,
-    'epochs': 1,
-    'batch_size': 64,
-    'cuda': False,
-    'num_channels': 512,
-})
-
 MODEL_FOLDER = './trained_model/'
 MODEL_NAME = 'padawan0.network'
 BOARD_SIZE = 3
 ARGS = dotdict({
         'numMCTSSims': 50,
-        'cpuct':1.0
+        'cpuct':1.0,
+        'lr': 0.001,
+        'dropout': 0.3,
+        'epochs': 1,
+        'batch_size': 64,
+        'cuda': False,
+        'num_channels': 512,
     })
 
 game = Game(BOARD_SIZE, False)
