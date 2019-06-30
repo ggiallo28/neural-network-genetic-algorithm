@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04
+FROM nvidia/cuda:9.2-cudnn7-runtime-ubuntu16.04
 
 ADD clean-layer.sh  /tmp/clean-layer.sh
 RUN chmod +x /tmp/clean-layer.sh
@@ -19,7 +19,7 @@ RUN cd /tmp && \
     python get-pip.py && rm get-pip.py
 RUN rm /usr/local/bin/pip && ln -s /usr/local/bin/pip3 /usr/local/bin/pip
 RUN apt-get remove curl -y && /tmp/clean-layer.sh
-RUN pip install mxnet-cu101 && /tmp/clean-layer.sh
+RUN pip install mxnet-cu92 --pre && /tmp/clean-layer.sh
 
 # Set up the program in the image
 COPY container /opt/program
