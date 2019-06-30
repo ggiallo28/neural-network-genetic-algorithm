@@ -27,7 +27,7 @@ if args['game'] == 'othello':
     from games.othello.mxnet.NNet import NNetWrapper as nn
 
 args['input_path'] = str(input_path)+'/train'
-args['cuda'] = True
+args['cuda'] = False
 args['numIters'] = int(args['numIters'])
 args['numEps'] = int(args['numEps'])
 args['tempThreshold'] = int(args['tempThreshold'])
