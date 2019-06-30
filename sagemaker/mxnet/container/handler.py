@@ -2,7 +2,7 @@ import Arena
 from MCTS import MCTS
 
 from games.tictactoe.TicTacToeGame import TicTacToeGame as Game
-from games.tictactoe.keras.NNet import NNetWrapper as NNet
+from games.tictactoe.mxnet.NNet import NNetWrapper as NNet
 from utils import *
 import numpy as np
 
