@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     apt-get update && apt-get install -y --no-install-recommends libgomp1 curl && \
     apt-get update && apt-get install -y --no-install-recommends python3.6-dev && \
     ln -s -f /usr/bin/python3 /usr/bin/python && \
-    apt-get install -y --no-install-recommends python3-distutils && \
+#    apt-get install -y --no-install-recommends python3-distutils && \
     rm -rf /var/lib/apt/lists/*
 RUN cd /tmp && \
     curl -O https://bootstrap.pypa.io/get-pip.py && \
